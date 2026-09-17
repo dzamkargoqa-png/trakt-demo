@@ -208,6 +208,16 @@ pre{margin:0;font-family:var(--mono);font-size:12.5px;line-height:1.5;white-spac
 .journal div:last-child{border-bottom:0}
 .journal .st{font-weight:600;flex:none;width:34px}
 .journal .st.s2{color:var(--ok)} .journal .st.s4{color:var(--warn)} .journal .st.s5{color:var(--err)}
+.quest{display:flex;flex-direction:column;gap:4px}
+.quest-row{display:grid;grid-template-columns:18px minmax(0,1fr) auto;gap:8px;align-items:baseline;padding:5px 9px;border:1px solid var(--line);border-radius:5px;background:var(--surface);font-size:13px}
+.quest-row.done{border-color:var(--ok);background:var(--ok-soft)}
+.quest-row .mk{font-weight:700;color:var(--ink-3);text-align:center}
+.quest-row.done .mk{color:var(--ok)}
+.quest-row .p{font-family:var(--mono);font-size:12px;color:var(--ink-3)}
+.quest-row.done .p{color:var(--ok);font-weight:600}
+.quest-row .why{display:none;grid-column:2/-1;font-size:12px;color:var(--info);margin-top:2px}
+body.review-on .quest-row .why{display:block}
+.quest-sum{font-family:var(--mono);font-size:12.5px;color:var(--ink-2);padding:2px 2px 0}
 .docs{font-family:var(--mono);font-size:12.5px;display:flex;flex-direction:column;gap:3px;color:var(--ink-2)}
 .docs b{color:var(--ink);font-weight:600}
 
@@ -480,6 +490,8 @@ pre{margin:0;font-family:var(--mono);font-size:12.5px;line-height:1.5;white-spac
             <div class="resp" id="apiResp"><div class="resp-status idle">— запроса ещё не было</div><div class="resp-body"><pre>Начни с <code>GET /v1/ping</code>, а дальше ходи по системе сам.</pre></div></div>
             <div class="pane-h">Журнал запросов <span style="text-transform:none;letter-spacing:0;font-weight:400">(интервьюер увидит его в отчёте)</span></div>
             <div class="journal" id="apiJournal"></div>
+            <div class="pane-h">Что засчитано по журналу</div>
+            <div id="apiQuest"></div>
           </div>
         </div>
         <div class="tasks" data-block="api"></div>
@@ -1039,6 +1051,37 @@ function apiCall(method, rawPath, headerStr, bodyStr){
     hint:'Полного списка эндпоинтов в документации нет — смотри поле _links в ответах'});
 }
 
+/* ---------- автозачёты по журналу запросов ---------- */
+function normPath(p){
+  return String(p||'').split('?')[0].replace(/\/+$/,'').toLowerCase().replace(/\/\d+/g, '/{id}');
+}
+function okEndpoints(j){
+  const set = {};
+  j.forEach(function(r){ if(r.status>=200 && r.status<400) set[normPath(r.path)] = 1; });
+  return Object.keys(set);
+}
+const UNDOC = /^\/v1\/trips\/\{id\}\/documents$|^\/v1\/companies\/\{id\}$|^\/v1\/invoices$/;
+const API_QUEST = [
+  {id:'q1', pts:2, t:'Проверил, что стенд вообще защищён',
+   why:'в журнале есть ответ 401 — значит сходил без валидного токена',
+   ok:function(j){ return j.some(function(r){ return r.status===401; }); }},
+  {id:'q2', pts:2, t:'Получил успешный ответ',
+   why:'любой 2xx: разобрался с заголовком Authorization',
+   ok:function(j){ return j.some(function(r){ return r.status>=200 && r.status<300; }); }},
+  {id:'q3', pts:2, t:'Дошёл до отказа по состоянию или валидации',
+   why:'409 (повторная подпись) или 422 (создание счёта без ставки НДС)',
+   ok:function(j){ return j.some(function(r){ return r.status===409 || r.status===422; }); }},
+  {id:'q4', pts:2, t:'Осмотрел систему вширь, а не одну ручку',
+   why:'пять и больше разных путей, ответивших успешно',
+   ok:function(j){ return okEndpoints(j).length >= 5; }},
+  {id:'q5', pts:2, t:'Нашёл то, чего нет в документации',
+   why:'документы рейса, карточка компании или список счетов — только через _links',
+   ok:function(j){ return j.some(function(r){ return UNDOC.test(normPath(r.path)) && r.status<400; }); }},
+  {id:'q6', pts:2, t:'Проверил поведение за пределами happy path',
+   why:'405 (чужой метод), 429 (лимит) или повтор подписи с заголовком Idempotency-Key',
+   ok:function(j){ return j.some(function(r){ return r.status===405 || r.status===429 || r.idem; }); }}
+];
+
 /* ============================================================
    ЗАДАНИЯ
    ============================================================ */
@@ -1409,10 +1452,13 @@ function save(){
   saveT = setTimeout(function(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){} }, 250);
 }
 
-function maxPts(block){ return (TASKS[block]||[]).reduce(function(a,t){return a+(t.pts||0);},0) + (block==='ai'?8:0) + (block==='proxy'?6:0); }
+const QUEST_MAX = API_QUEST.reduce(function(a,q){return a+q.pts;}, 0);
+function maxPts(block){ return (TASKS[block]||[]).reduce(function(a,t){return a+(t.pts||0);},0)
+  + (block==='ai'?8:0) + (block==='proxy'?6:0) + (block==='api'?QUEST_MAX:0); }
 function earnedPts(block){
   return (TASKS[block]||[]).reduce(function(a,t){return a + (S.earned[t.id]||0);},0)
-    + (block==='ai'?(S.earned.aiStmts||0):0) + (block==='proxy'?(S.earned.mock||0):0);
+    + (block==='ai'?(S.earned.aiStmts||0):0) + (block==='proxy'?(S.earned.mock||0):0)
+    + (block==='api'?(S.earned.apiQuest||0):0);
 }
 function updateScore(){
   let tot=0, max=0;
@@ -1658,6 +1704,11 @@ function buildReport(){
     });
     L.push('');
   });
+  L.push('## Исследование API по журналу (' + (S.earned.apiQuest||0) + '/' + QUEST_MAX + ')');
+  API_QUEST.forEach(function(q){
+    L.push('- [' + (q.ok(S.journal) ? 'x' : ' ') + '] ' + q.t + ' — ' + q.why);
+  });
+  L.push('');
   L.push('## Журнал API-запросов (' + S.journal.length + ')');
   S.journal.forEach(function(r){ L.push('- `' + r.status + ' ' + r.method + ' ' + r.path + '`'); });
   L.push('');
@@ -1823,9 +1874,23 @@ function sendApi(){
       '<span style="color:var(--ink-3);font-weight:400;font-family:var(--sans);font-size:12px">'+esc(method+' '+path)+'</span></div>'+
     '<div class="resp-body"><pre style="color:var(--ink-3);font-size:11.5px">'+esc(hdrs)+'</pre><pre style="margin-top:8px">'+
       (r.body===null?'<span class="jnull">(пустое тело)</span>':hlJson(r.body))+'</pre></div>';
-  S.journal.push({method:method, path:path, status:r.status});
+  const hdrs_in = ($('#apiHeaders').value||'').toLowerCase();
+  S.journal.push({method:method, path:path, status:r.status, idem: hdrs_in.indexOf('idempotency-key')>=0 && r.status<400});
   if(S.journal.length>200) S.journal = S.journal.slice(-200);
-  renderJournal(); save(); updateScore();
+  renderJournal(); renderQuest(); save(); updateScore();
+}
+function renderQuest(){
+  const host = $('#apiQuest'); if(!host) return;
+  let got = 0;
+  const rows = API_QUEST.map(function(q){
+    const ok = q.ok(S.journal); if(ok) got += q.pts;
+    return '<div class="quest-row'+(ok?' done':'')+'"><span class="mk">'+(ok?'✓':'○')+'</span>'+
+      '<span>'+esc(q.t)+'</span><span class="p">'+(ok?'+':'')+q.pts+' б</span>'+
+      '<span class="why">засчитывается за: '+esc(q.why)+'</span></div>';
+  }).join('');
+  S.earned.apiQuest = got;
+  host.innerHTML = '<div class="quest">'+rows+'</div>'+
+    '<div class="quest-sum">по журналу: '+got+' / '+QUEST_MAX+' б · запросов: '+S.journal.length+'</div>';
 }
 function renderDocs(){
   $('#apiDocs').innerHTML = API_DOCS.map(function(d){
@@ -2002,6 +2067,7 @@ renderTasks();
 renderSchema();
 renderDocs();
 renderJournal();
+renderQuest();
 renderLogChips();
 renderLogs();
 renderParts();
@@ -2093,7 +2159,7 @@ document.addEventListener('input', function(e){
 });
 
 $('#apiSend').onclick = sendApi;
-$('#apiClear').onclick = function(){ S.journal = []; renderJournal(); save(); updateScore(); };
+$('#apiClear').onclick = function(){ S.journal = []; renderJournal(); renderQuest(); save(); updateScore(); };
 $('#apiPath').addEventListener('keydown', function(e){ if(e.key==='Enter') sendApi(); });
 $('#mockApply').onclick = applyMock;
 $('#mockReset').onclick = function(){ $('#mockJson').value = realOrderJson(); applyMock(); };
@@ -2105,6 +2171,7 @@ $('#reviewBtn').onclick = function(){
   const on = !document.body.classList.contains('review-on');
   setReview(on);
   renderEst(false);
+  renderQuest();
   Object.keys(TASKS_INDEX).forEach(function(id){
     const t = TASKS_INDEX[id];
     if((t.type==='choice'||t.type==='multi') && S.earned[id]!==undefined) paintVerdict(t, checkTask(t));
