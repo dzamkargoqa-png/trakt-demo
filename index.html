@@ -69,7 +69,10 @@ a{color:var(--accent);text-underline-offset:2px}
 .brand-sub{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);font-weight:500}
 .tb-stat{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--ink-2);white-space:nowrap}
 .tb-stat b{font-family:var(--mono);font-variant-numeric:tabular-nums;color:var(--ink);font-weight:600}
-.timer{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:15px;font-weight:600;padding:2px 8px;border:1px solid var(--line-2);border-radius:4px;background:var(--surface-2)}
+.timer{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:15px;font-weight:600;padding:2px 8px;border:1px solid var(--line-2);border-radius:4px;background:var(--surface-2);cursor:pointer}
+.timer:hover{border-color:var(--accent)}
+#timerReset{font-size:16px;line-height:1;padding:5px 9px}
+.modal-note{font-size:13px;color:var(--ink-2);margin-bottom:10px}
 .timer.low{color:var(--err);border-color:var(--err)}
 .bar{width:120px;height:6px;border-radius:3px;background:var(--surface-3);overflow:hidden}
 .bar i{display:block;height:100%;background:var(--accent);width:0;transition:width .3s ease}
@@ -290,9 +293,9 @@ pre{margin:0;font-family:var(--mono);font-size:12.5px;line-height:1.5;white-spac
   .case-row .exp,.case-head .exp{grid-column:2/3}
 }
 </style>
-
 </head>
 <body>
+
 <div class="topbar">
   <div class="topbar-in">
     <div class="brand">
@@ -302,10 +305,11 @@ pre{margin:0;font-family:var(--mono);font-size:12.5px;line-height:1.5;white-spac
     <div class="tb-stat" title="Автоматически проверяемые баллы"><span>Авто</span> <b id="scoreNow">0</b>/<b id="scoreMax">0</b>
       <span class="bar"><i id="scoreBar"></i></span>
     </div>
-    <div class="tb-stat"><span class="timer" id="timer">45:00</span>
+    <div class="tb-stat"><span class="timer" id="timer" title="Нажми, чтобы задать другую длительность">45:00</span>
       <button class="btn btn-sm" id="timerBtn">Старт</button>
+      <button class="btn btn-sm btn-ghost" id="timerReset" title="Сбросить таймер" aria-label="Сбросить таймер">↺</button>
     </div>
-    <button class="btn btn-sm" id="exportBtn">Выгрузить ответы</button>
+    <button class="btn btn-sm" id="exportBtn" title="Собрать отчёт: ответы, вердикты, журнал API и SQL">Выгрузить ответы</button>
     <button class="btn btn-sm btn-ghost" id="reviewBtn" title="Эталоны и вопросы на добивку. Не показывать кандидату.">Режим интервьюера</button>
   </div>
 </div>
@@ -1638,14 +1642,30 @@ function openReport(){
   const text = buildReport();
   const wrap = document.createElement('div');
   wrap.className = 'modal';
+  const canSave = /github\.io$/.test(location.hostname) || location.protocol==='file:' || /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
   wrap.innerHTML = '<div class="modal-in"><div class="modal-h"><h3>Отчёт для разбора</h3>'+
     '<button class="btn btn-sm btn-primary" id="mCopy">Скопировать</button>'+
+    (canSave? '<button class="btn btn-sm" id="mSave">Скачать .md</button>':'')+
     '<button class="btn btn-sm" id="mClose">Закрыть</button></div>'+
-    '<div class="modal-b"><textarea id="mText" spellcheck="false"></textarea></div></div>';
+    '<div class="modal-b"><div class="modal-note">Ответы по всем блокам, вердикты автопроверки, журнал API-запросов и тексты SQL — всё, что кандидат делал на странице. Отдай это себе в заметки до того, как чистить стенд.</div>'+
+    '<textarea id="mText" spellcheck="false"></textarea></div></div>';
   document.body.appendChild(wrap);
   $('#mText', wrap).value = text;
   $('#mClose', wrap).onclick = function(){ wrap.remove(); };
   wrap.onclick = function(e){ if(e.target===wrap) wrap.remove(); };
+  const mSave = $('#mSave', wrap);
+  if(mSave) mSave.onclick = function(){
+    try{
+      const d = new Date();
+      const stamp = d.getFullYear()+('0'+(d.getMonth()+1)).slice(-2)+('0'+d.getDate()).slice(-2)+'-'+('0'+d.getHours()).slice(-2)+('0'+d.getMinutes()).slice(-2);
+      const url = URL.createObjectURL(new Blob([$('#mText', wrap).value], {type:'text/markdown;charset=utf-8'}));
+      const a = document.createElement('a');
+      a.href = url; a.download = 'qa-INC-4471-'+stamp+'.md';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function(){ URL.revokeObjectURL(url); }, 2000);
+      mSave.textContent = 'Скачано';
+    } catch(e){ mSave.textContent = 'Не вышло — копируй'; }
+  };
   $('#mCopy', wrap).onclick = function(){
     const ta = $('#mText', wrap); ta.select();
     let ok = false;
@@ -2043,6 +2063,23 @@ $('#reviewBtn').onclick = function(){
     if((t.type==='choice'||t.type==='multi') && S.earned[id]!==undefined) paintVerdict(t, checkTask(t));
   });
   if(S.earned.aiStmts!==undefined) checkAi();
+};
+if(!S.timer.total) S.timer.total = 45*60;
+function resetTimer(sec){
+  S.timer.total = sec || S.timer.total || 45*60;
+  S.timer.left = S.timer.total;
+  S.timer.on = false;
+  $('#timerBtn').textContent = 'Старт';
+  paintTimer(); save();
+}
+$('#timerReset').onclick = function(){ resetTimer(); };
+$('#timer').onclick = function(){
+  const cur = Math.round((S.timer.total || 45*60)/60);
+  const v = prompt('Сколько минут на задание?', String(cur));
+  if(v===null) return;
+  const n = parseInt(String(v).replace(/[^0-9]/g,''), 10);
+  if(isNaN(n) || n < 1 || n > 240) return;
+  resetTimer(n*60);
 };
 $('#timerBtn').onclick = function(){
   S.timer.on = !S.timer.on;
