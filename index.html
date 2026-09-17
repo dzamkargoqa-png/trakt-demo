@@ -1,0 +1,2063 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+:root{color-scheme:light dark;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0;font-family:system-ui,-apple-system,sans-serif;font-size:14px;background:#E9EDF1}
+img{max-width:100%}
+[hidden]{display:none!important}
+</style>
+<title>Диспетчерская Тракт</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#E9EDF1; --surface:#FFFFFF; --surface-2:#F3F6F9; --surface-3:#E2E9EF;
+  --line:#CFD8E1; --line-2:#AEBAC6;
+  --ink:#111820; --ink-2:#52616F; --ink-3:#7F8D9A;
+  --accent:#B85C0B; --accent-2:#8F4708; --accent-soft:#FAEBD9;
+  --ok:#2C7D57; --ok-soft:#DDF0E6;
+  --warn:#94690A; --warn-soft:#FAF0D4;
+  --err:#BC3A2C; --err-soft:#FBE2DE;
+  --info:#255F92; --info-soft:#DDE9F5;
+  --shadow:0 1px 2px rgba(17,24,32,.06), 0 8px 20px -14px rgba(17,24,32,.35);
+  --mono:"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --sans:"IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --disp:"Oswald", "IBM Plex Sans", sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0E1318; --surface:#161D24; --surface-2:#1B242C; --surface-3:#243039;
+    --line:#2B353E; --line-2:#3D4B56;
+    --ink:#DEE6ED; --ink-2:#98A7B5; --ink-3:#74838F;
+    --accent:#EDA249; --accent-2:#F5BC78; --accent-soft:#33240F;
+    --ok:#5DC08D; --ok-soft:#14301F;
+    --warn:#DFB45C; --warn-soft:#322815;
+    --err:#F07A6C; --err-soft:#331B18;
+    --info:#7FB3E0; --info-soft:#132534;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 24px -16px rgba(0,0,0,.8);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0E1318; --surface:#161D24; --surface-2:#1B242C; --surface-3:#243039;
+  --line:#2B353E; --line-2:#3D4B56;
+  --ink:#DEE6ED; --ink-2:#98A7B5; --ink-3:#74838F;
+  --accent:#EDA249; --accent-2:#F5BC78; --accent-soft:#33240F;
+  --ok:#5DC08D; --ok-soft:#14301F;
+  --warn:#DFB45C; --warn-soft:#322815;
+  --err:#F07A6C; --err-soft:#331B18;
+  --info:#7FB3E0; --info-soft:#132534;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 24px -16px rgba(0,0,0,.8);
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{font-family:var(--disp);font-weight:500;letter-spacing:.01em;text-wrap:balance;margin:0}
+p{margin:0}
+a{color:var(--accent);text-underline-offset:2px}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+
+/* ---------- top bar ---------- */
+.topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:40;background:color-mix(in srgb,var(--surface) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.topbar-in{max-width:1220px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.brand{display:flex;align-items:baseline;gap:9px;margin-right:auto}
+.brand-mark{font-family:var(--disp);font-size:20px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink)}
+.brand-mark span{color:var(--accent)}
+.brand-sub{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);font-weight:500}
+.tb-stat{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--ink-2);white-space:nowrap}
+.tb-stat b{font-family:var(--mono);font-variant-numeric:tabular-nums;color:var(--ink);font-weight:600}
+.timer{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:15px;font-weight:600;padding:2px 8px;border:1px solid var(--line-2);border-radius:4px;background:var(--surface-2)}
+.timer.low{color:var(--err);border-color:var(--err)}
+.bar{width:120px;height:6px;border-radius:3px;background:var(--surface-3);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);width:0;transition:width .3s ease}
+
+/* ---------- buttons ---------- */
+button{font-family:inherit;font-size:14px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:5px;border:1px solid var(--line-2);background:var(--surface);color:var(--ink);cursor:pointer;font-weight:500;transition:background .15s,border-color .15s}
+.btn:hover{background:var(--surface-2);border-color:var(--ink-3)}
+.btn-primary{background:var(--accent);border-color:var(--accent);color:#fff}
+:root[data-theme="dark"] .btn-primary,:root:not([data-theme="light"]) .btn-primary{color:#1B1206}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]) .btn-primary{color:#fff}}
+.btn-primary:hover{background:var(--accent-2);border-color:var(--accent-2)}
+.btn-sm{padding:4px 9px;font-size:13px}
+.btn-ghost{background:transparent;border-color:transparent;color:var(--ink-2)}
+.btn-ghost:hover{background:var(--surface-2);border-color:var(--line)}
+
+/* ---------- layout ---------- */
+.shell{max-width:1220px;margin:0 auto;padding-inline:16px;padding-block:22px 60px;display:grid;grid-template-columns:238px minmax(0,1fr);gap:30px;align-items:start}
+.rail{position:sticky;top:calc(env(safe-area-inset-top,0px) + 62px);display:flex;flex-direction:column;gap:2px}
+.rail-h{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);font-weight:600;margin:0 0 8px 8px}
+.rail a{display:grid;grid-template-columns:22px 1fr auto;align-items:center;gap:8px;padding:7px 9px;border-radius:5px;color:var(--ink-2);text-decoration:none;font-size:14px;border:1px solid transparent}
+.rail a:hover{background:var(--surface-2)}
+.rail a.on{background:var(--surface);border-color:var(--line);color:var(--ink);font-weight:500;box-shadow:var(--shadow)}
+.rail a .n{font-family:var(--mono);font-size:12px;color:var(--ink-3)}
+.rail a.on .n{color:var(--accent)}
+.rail .dot{width:8px;height:8px;border-radius:50%;background:var(--surface-3);border:1px solid var(--line-2)}
+.rail .dot.part{background:var(--warn)}
+.rail .dot.done{background:var(--ok);border-color:var(--ok)}
+main{min-width:0;display:flex;flex-direction:column;gap:18px}
+
+/* ---------- section ---------- */
+.sec{background:var(--surface);border:1px solid var(--line);border-radius:8px;box-shadow:var(--shadow);scroll-margin-top:84px}
+.sec-h{padding:16px 20px 14px;border-bottom:1px solid var(--line);display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap}
+.sec-h .idx{font-family:var(--disp);font-size:26px;line-height:1;color:var(--accent);font-weight:600;font-variant-numeric:tabular-nums}
+.sec-h h2{font-size:21px;margin-bottom:2px}
+.sec-h .sub{font-size:13px;color:var(--ink-2);max-width:62ch}
+.sec-meta{margin-left:auto;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.sec-b{padding:18px 20px 22px;display:flex;flex-direction:column;gap:16px}
+.chip{font-size:11px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;padding:3px 8px;border-radius:99px;border:1px solid var(--line-2);color:var(--ink-2);background:var(--surface-2);white-space:nowrap}
+.chip.time{border-color:var(--line-2)}
+.chip.pts{color:var(--accent);border-color:var(--accent);background:var(--accent-soft)}
+.chip.ok{color:var(--ok);border-color:var(--ok);background:var(--ok-soft)}
+.chip.err{color:var(--err);border-color:var(--err);background:var(--err-soft)}
+.chip.info{color:var(--info);border-color:var(--info);background:var(--info-soft)}
+.chip.warn{color:var(--warn);border-color:var(--warn);background:var(--warn-soft)}
+
+/* ---------- prose bits ---------- */
+.lead{font-size:15px;color:var(--ink-2)}
+.lead strong{color:var(--ink);font-weight:600}
+.note{border-left:3px solid var(--accent);background:var(--surface-2);padding:11px 14px;border-radius:0 6px 6px 0;font-size:14px;color:var(--ink-2)}
+.note b{color:var(--ink)}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:14px}
+.kv dt{color:var(--ink-3);font-size:12px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;padding-top:2px}
+.kv dd{margin:0;font-family:var(--mono);font-size:13px}
+code,.code{font-family:var(--mono);font-size:.92em;background:var(--surface-3);padding:1px 5px;border-radius:3px}
+.hr{height:1px;background:var(--line);border:0;margin:2px 0}
+ul.tight{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:5px;font-size:14px;color:var(--ink-2)}
+ul.tight strong{color:var(--ink)}
+
+/* ---------- task ---------- */
+.task{border:1px solid var(--line);border-radius:7px;background:var(--surface-2);padding:14px 16px;display:flex;flex-direction:column;gap:11px}
+.task-h{display:flex;gap:10px;align-items:baseline}
+.task-h .tn{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--accent);white-space:nowrap;padding-top:1px}
+.task-q{font-size:14.5px;font-weight:500}
+.task-q .q-sub{display:block;font-weight:400;color:var(--ink-2);font-size:13.5px;margin-top:3px}
+.opts{display:flex;flex-direction:column;gap:6px}
+.opt{display:flex;gap:9px;align-items:flex-start;padding:8px 11px;border:1px solid var(--line);border-radius:5px;background:var(--surface);cursor:pointer;font-size:14px;transition:border-color .12s,background .12s}
+.opt:hover{border-color:var(--ink-3)}
+.opt input{margin:3px 0 0;accent-color:var(--accent);flex:none}
+.opt.right{border-color:var(--ok);background:var(--ok-soft)}
+.opt.wrong{border-color:var(--err);background:var(--err-soft)}
+.opt .mark{margin-left:auto;font-weight:700;font-size:13px}
+textarea,input[type=text],input[type=number],select{font-family:var(--sans);font-size:14px;color:var(--ink);background:var(--surface);border:1px solid var(--line-2);border-radius:5px;padding:8px 10px;width:100%;max-width:100%}
+textarea{resize:vertical;line-height:1.5}
+textarea.mono,input.mono{font-family:var(--mono);font-size:13px}
+.inline-in{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.inline-in input{width:auto;min-width:120px;flex:1 1 180px}
+.verdict{font-size:13px;display:flex;gap:7px;align-items:flex-start;padding:8px 11px;border-radius:5px;border:1px solid var(--line)}
+.verdict.ok{background:var(--ok-soft);border-color:var(--ok);color:var(--ok)}
+.verdict.err{background:var(--err-soft);border-color:var(--err);color:var(--err)}
+.verdict.idle{background:var(--surface-3);color:var(--ink-2)}
+.verdict b{font-weight:600}
+.task-foot{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.hintbox{font-size:13px;color:var(--ink-2);background:var(--surface-3);padding:8px 11px;border-radius:5px}
+
+/* ---------- review (interviewer) ---------- */
+.review{display:none;border:1px dashed var(--info);background:var(--info-soft);color:var(--ink);border-radius:6px;padding:10px 13px;font-size:13.5px;flex-direction:column;gap:6px}
+body.review-on .review{display:flex}
+.review .rh{font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;color:var(--info)}
+.review ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:3px}
+.review-banner{display:none;position:sticky;top:calc(env(safe-area-inset-top,0px) + 54px);z-index:30;background:var(--info);color:#fff;padding:6px 16px;font-size:12.5px;font-weight:600;letter-spacing:.04em;text-align:center}
+body.review-on .review-banner{display:block}
+
+/* ---------- tables ---------- */
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:6px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:13px;font-family:var(--mono);font-variant-numeric:tabular-nums}
+th{text-align:left;font-family:var(--sans);font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3);font-weight:600;padding:8px 11px;border-bottom:1px solid var(--line);background:var(--surface-2);white-space:nowrap;position:sticky;top:0}
+td{padding:6px 11px;border-bottom:1px solid var(--line);white-space:nowrap}
+tr:last-child td{border-bottom:0}
+td.null{color:var(--ink-3);font-style:italic}
+
+/* ---------- sql ---------- */
+.schema{display:flex;gap:10px;flex-wrap:wrap}
+.tbl-card{flex:1 1 168px;border:1px solid var(--line);border-radius:6px;background:var(--surface);padding:9px 11px;font-size:12.5px}
+.tbl-card h4{font-family:var(--mono);font-size:13px;color:var(--accent);margin-bottom:5px;font-weight:600}
+.tbl-card ul{list-style:none;margin:0;padding:0;font-family:var(--mono);font-size:11.5px;color:var(--ink-2);display:flex;flex-direction:column;gap:1px}
+.tbl-card .pk{color:var(--ink);font-weight:600}
+.sql-ed{display:flex;flex-direction:column;gap:8px}
+.res-meta{font-size:12.5px;color:var(--ink-2);font-family:var(--mono)}
+
+/* ---------- api console ---------- */
+.api{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px}
+.api-pane{display:flex;flex-direction:column;gap:8px;min-width:0}
+.req-line{display:flex;gap:8px}
+.req-line select{width:auto;flex:none;font-family:var(--mono);font-weight:600}
+.req-line input{flex:1 1 auto;min-width:0}
+.pane-h{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);font-weight:700}
+pre{margin:0;font-family:var(--mono);font-size:12.5px;line-height:1.5;white-space:pre-wrap;word-break:break-word}
+.resp{border:1px solid var(--line);border-radius:6px;background:var(--surface);overflow:hidden}
+.resp-status{padding:7px 11px;font-family:var(--mono);font-size:13px;font-weight:600;border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.resp-status.s2{background:var(--ok-soft);color:var(--ok)}
+.resp-status.s4{background:var(--warn-soft);color:var(--warn)}
+.resp-status.s5{background:var(--err-soft);color:var(--err)}
+.resp-body{padding:10px 12px;max-height:340px;overflow:auto}
+.jkey{color:var(--info)} .jstr{color:var(--ok)} .jnum{color:var(--accent)} .jnull{color:var(--ink-3);font-style:italic}
+.journal{max-height:170px;overflow:auto;border:1px solid var(--line);border-radius:6px;background:var(--surface);font-family:var(--mono);font-size:12px}
+.journal div{padding:4px 10px;border-bottom:1px solid var(--line);display:flex;gap:9px;cursor:pointer}
+.journal div:hover{background:var(--surface-2)}
+.journal div:last-child{border-bottom:0}
+.journal .st{font-weight:600;flex:none;width:34px}
+.journal .st.s2{color:var(--ok)} .journal .st.s4{color:var(--warn)} .journal .st.s5{color:var(--err)}
+.docs{font-family:var(--mono);font-size:12.5px;display:flex;flex-direction:column;gap:3px;color:var(--ink-2)}
+.docs b{color:var(--ink);font-weight:600}
+
+/* ---------- logs ---------- */
+.logbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.logbar input{flex:1 1 220px;width:auto}
+.fchip{font-family:var(--mono);font-size:12px;padding:3px 9px;border-radius:99px;border:1px solid var(--line-2);background:var(--surface);color:var(--ink-2);cursor:pointer}
+.fchip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+:root[data-theme="dark"] .fchip.on,:root:not([data-theme="light"]) .fchip.on{color:#1B1206}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]) .fchip.on{color:#fff}}
+.logs{border:1px solid var(--line);border-radius:6px;background:var(--surface);font-family:var(--mono);font-size:12px;line-height:1.5;max-height:400px;overflow:auto}
+.logline{display:grid;grid-template-columns:76px 60px 118px minmax(0,1fr);gap:10px;padding:3px 11px;border-bottom:1px solid color-mix(in srgb,var(--line) 55%,transparent)}
+.logline:hover{background:var(--surface-2)}
+.logline .lv{font-weight:600}
+.logline .lv.ERROR{color:var(--err)} .logline .lv.WARN{color:var(--warn)} .logline .lv.INFO{color:var(--info)} .logline .lv.DEBUG{color:var(--ink-3)}
+.logline .svc{color:var(--accent)}
+.logline .msg{white-space:pre-wrap;word-break:break-word;color:var(--ink)}
+.logline .ts{color:var(--ink-3)}
+.logline mark{background:var(--accent);color:#1B1206;border-radius:2px}
+
+/* ---------- queues ---------- */
+.parts{display:flex;flex-direction:column;gap:7px}
+.part{display:grid;grid-template-columns:96px minmax(0,1fr) 74px;gap:10px;align-items:center;font-family:var(--mono);font-size:12.5px}
+.part .track{height:16px;background:var(--surface-3);border-radius:3px;overflow:hidden;border:1px solid var(--line)}
+.part .track i{display:block;height:100%;background:var(--ok)}
+.part .track i.hot{background:var(--err)}
+.part .lag{text-align:right;font-weight:600}
+
+/* ---------- mock / client card ---------- */
+.lk{border:1px solid var(--line-2);border-radius:8px;background:var(--surface);padding:14px 16px;display:flex;flex-direction:column;gap:9px;font-size:14px}
+.lk-h{display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:1px solid var(--line);padding-bottom:8px}
+.lk-h b{font-family:var(--disp);font-size:16px;font-weight:500}
+.lk-row{display:flex;justify-content:space-between;gap:12px}
+.lk-row span:first-child{color:var(--ink-3);font-size:13px}
+.lk-row span:last-child{font-family:var(--mono);font-size:13px}
+.lk-status{font-weight:600}
+
+/* ---------- test cases ---------- */
+.cases{display:flex;flex-direction:column;gap:8px}
+.case-row{display:grid;grid-template-columns:28px minmax(0,1fr) minmax(0,1fr) 30px;gap:8px;align-items:start}
+.case-row .num{font-family:var(--mono);font-size:12px;color:var(--ink-3);padding-top:9px}
+.case-row textarea{min-height:44px}
+.case-row .del{border:1px solid var(--line);background:var(--surface);color:var(--ink-3);border-radius:5px;cursor:pointer;height:32px;margin-top:3px}
+.case-head{display:grid;grid-template-columns:28px minmax(0,1fr) minmax(0,1fr) 30px;gap:8px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
+
+/* ---------- estimate ---------- */
+.est{overflow-x:auto}
+.est table{font-family:var(--mono)}
+.est input{width:74px;padding:4px 6px;font-family:var(--mono);text-align:right}
+.est td{white-space:nowrap}
+.est .calc{color:var(--accent);font-weight:600}
+
+/* ---------- ai statements ---------- */
+.stmts{display:flex;flex-direction:column;gap:6px}
+.stmt{display:flex;gap:10px;padding:9px 12px;border:1px solid var(--line);border-radius:6px;background:var(--surface);cursor:pointer;font-size:14px}
+.stmt .sn{font-family:var(--mono);font-size:12px;color:var(--ink-3);flex:none}
+.stmt.sel{border-color:var(--err);background:var(--err-soft)}
+.stmt.right{border-color:var(--ok);background:var(--ok-soft)}
+.stmt.miss{border-color:var(--warn);background:var(--warn-soft)}
+
+/* ---------- final ---------- */
+.score-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.score-card{border:1px solid var(--line);border-radius:6px;padding:10px 12px;background:var(--surface-2)}
+.score-card .sl{font-size:12px;color:var(--ink-2)}
+.score-card .sv{font-family:var(--mono);font-size:19px;font-weight:600;font-variant-numeric:tabular-nums}
+.modal{position:fixed;inset:0;background:rgba(10,14,18,.6);display:flex;align-items:center;justify-content:center;padding:16px;z-index:100}
+.modal-in{background:var(--surface);border:1px solid var(--line-2);border-radius:8px;max-width:760px;width:100%;max-height:82vh;display:flex;flex-direction:column;overflow:hidden}
+.modal-h{padding:12px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
+.modal-h h3{font-size:17px;margin-right:auto}
+.modal-b{padding:14px 16px;overflow:auto}
+.modal-b textarea{min-height:340px;font-family:var(--mono);font-size:12px}
+
+/* ---------- diagram ---------- */
+.diagram{width:100%;overflow-x:auto}
+.diagram svg{display:block;min-width:660px;max-width:100%;height:auto}
+
+@media (max-width:900px){
+  .shell{grid-template-columns:minmax(0,1fr);gap:16px}
+  .rail{position:static;flex-direction:row;overflow-x:auto;gap:6px;padding-bottom:4px}
+  .rail-h{display:none}
+  .rail a{grid-template-columns:auto auto;white-space:nowrap;border:1px solid var(--line);background:var(--surface)}
+  .rail a .dot{display:none}
+  .api{grid-template-columns:minmax(0,1fr)}
+  .logline{grid-template-columns:62px 52px minmax(0,1fr);row-gap:0}
+  .logline .msg{grid-column:1/-1;padding-left:2px}
+  .case-row,.case-head{grid-template-columns:22px minmax(0,1fr) 28px}
+  .case-row .exp,.case-head .exp{grid-column:2/3}
+}
+</style>
+
+</head>
+<body>
+<div class="topbar">
+  <div class="topbar-in">
+    <div class="brand">
+      <span class="brand-mark">Тр<span>а</span>кт</span>
+      <span class="brand-sub">стенд QA · инцидент INC-4471</span>
+    </div>
+    <div class="tb-stat" title="Автоматически проверяемые баллы"><span>Авто</span> <b id="scoreNow">0</b>/<b id="scoreMax">0</b>
+      <span class="bar"><i id="scoreBar"></i></span>
+    </div>
+    <div class="tb-stat"><span class="timer" id="timer">45:00</span>
+      <button class="btn btn-sm" id="timerBtn">Старт</button>
+    </div>
+    <button class="btn btn-sm" id="exportBtn">Выгрузить ответы</button>
+    <button class="btn btn-sm btn-ghost" id="reviewBtn" title="Эталоны и вопросы на добивку. Не показывать кандидату.">Режим интервьюера</button>
+  </div>
+</div>
+<div class="review-banner">Режим интервьюера включён — на экране видны эталоны ответов и вопросы на добивку</div>
+
+<div class="shell">
+  <nav class="rail" id="rail" aria-label="Разделы">
+    <div class="rail-h">Разделы</div>
+  </nav>
+
+  <main>
+
+    <!-- 00 BRIEF -->
+    <section class="sec" id="brief">
+      <div class="sec-h">
+        <span class="idx">00</span>
+        <div>
+          <h2>Вводная: что такое «Тракт» и что сломалось</h2>
+          <p class="sub">Прочитай легенду и схему — дальше все задания про один и тот же инцидент. Задания можно решать в любом порядке.</p>
+        </div>
+        <div class="sec-meta"><span class="chip time">3 мин</span></div>
+      </div>
+      <div class="sec-b">
+        <p class="lead"><strong>Тракт</strong> — платформа грузоперевозок. Клиент создаёт заказ, диспетчер назначает рейс, водитель везёт груз, по факту доставки стороны подписывают электронную транспортную накладную (ЭТрН) через оператора ЭДО, после чего клиенту выставляется счёт.</p>
+
+        <div class="diagram">
+          <svg viewBox="0 0 720 258" role="img" aria-label="Схема сервисов платформы Тракт">
+            <defs>
+              <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M0 0 L10 5 L0 10 z" fill="var(--ink-3)"></path>
+              </marker>
+            </defs>
+            <g font-family="IBM Plex Sans, sans-serif" font-size="12">
+              <rect x="6" y="22" width="112" height="44" rx="5" fill="var(--surface-2)" stroke="var(--line-2)"></rect>
+              <text x="62" y="41" text-anchor="middle" fill="var(--ink)" font-weight="600">ЛК клиента</text>
+              <text x="62" y="56" text-anchor="middle" fill="var(--ink-3)" font-size="10.5">SPA, браузер</text>
+
+              <rect x="166" y="22" width="112" height="44" rx="5" fill="var(--surface-2)" stroke="var(--line-2)"></rect>
+              <text x="222" y="41" text-anchor="middle" fill="var(--ink)" font-weight="600">gateway</text>
+              <text x="222" y="56" text-anchor="middle" fill="var(--ink-3)" font-size="10.5">авторизация, роутинг</text>
+
+              <rect x="326" y="22" width="112" height="44" rx="5" fill="var(--surface-2)" stroke="var(--line-2)"></rect>
+              <text x="382" y="41" text-anchor="middle" fill="var(--ink)" font-weight="600">order-api</text>
+              <text x="382" y="56" text-anchor="middle" fill="var(--ink-3)" font-size="10.5">заказы, статусы</text>
+
+              <rect x="486" y="22" width="112" height="44" rx="5" fill="var(--surface-2)" stroke="var(--line-2)"></rect>
+              <text x="542" y="41" text-anchor="middle" fill="var(--ink)" font-weight="600">tariff-service</text>
+              <text x="542" y="56" text-anchor="middle" fill="var(--ink-3)" font-size="10.5">цены, справочники</text>
+
+              <line x1="118" y1="44" x2="160" y2="44" stroke="var(--ink-3)" marker-end="url(#ar)"></line>
+              <line x1="278" y1="44" x2="320" y2="44" stroke="var(--ink-3)" marker-end="url(#ar)"></line>
+              <line x1="438" y1="44" x2="480" y2="44" stroke="var(--ink-3)" marker-end="url(#ar)"></line>
+
+              <rect x="166" y="108" width="432" height="34" rx="5" fill="var(--accent-soft)" stroke="var(--accent)"></rect>
+              <text x="178" y="129" fill="var(--accent)" font-weight="600" font-size="11.5">Kafka</text>
+              <text x="222" y="129" fill="var(--ink-2)" font-family="IBM Plex Mono, monospace" font-size="11">trip.signed.v1 · invoice.created.v1 · trip.signed.v1.DLQ</text>
+
+              <rect x="166" y="184" width="112" height="46" rx="5" fill="var(--surface-2)" stroke="var(--line-2)"></rect>
+              <text x="222" y="203" text-anchor="middle" fill="var(--ink)" font-weight="600">doc-service</text>
+              <text x="222" y="218" text-anchor="middle" fill="var(--ink-3)" font-size="10.5">ЭТрН, подписи</text>
+
+              <rect x="326" y="184" width="112" height="46" rx="5" fill="var(--surface-2)" stroke="var(--line-2)"></rect>
+              <text x="382" y="203" text-anchor="middle" fill="var(--ink)" font-weight="600">billing-consumer</text>
+              <text x="382" y="218" text-anchor="middle" fill="var(--ink-3)" font-size="10.5">счета</text>
+
+              <rect x="486" y="184" width="112" height="46" rx="5" fill="var(--surface-2)" stroke="var(--line-2)"></rect>
+              <text x="542" y="203" text-anchor="middle" fill="var(--ink)" font-weight="600">Оператор ЭДО</text>
+              <text x="542" y="218" text-anchor="middle" fill="var(--ink-3)" font-size="10.5">внешний, по HTTPS</text>
+
+              <line x1="222" y1="66" x2="222" y2="180" stroke="var(--ink-3)" stroke-dasharray="3 3"></line>
+              <line x1="222" y1="184" x2="222" y2="146" stroke="var(--ink-3)" marker-end="url(#ar)"></line>
+              <line x1="382" y1="108" x2="382" y2="180" stroke="var(--ink-3)" marker-end="url(#ar)"></line>
+              <line x1="382" y1="108" x2="382" y2="70" stroke="var(--ink-3)" marker-end="url(#ar)"></line>
+              <line x1="278" y1="207" x2="480" y2="207" stroke="var(--ink-3)" stroke-dasharray="4 3"></line>
+              <text x="620" y="130" fill="var(--ink-3)" font-size="10.5">PostgreSQL:</text>
+              <text x="620" y="146" fill="var(--ink-3)" font-size="10.5">общая схема</text>
+              <text x="620" y="162" fill="var(--ink-3)" font-size="10.5">для заданий SQL</text>
+            </g>
+          </svg>
+        </div>
+
+        <div class="note">
+          <b>Инцидент INC-4471.</b> Компания «Северторг» пишет в поддержку: рейс по заказу <code>4471</code> доставлен 16 сентября, водитель и клиент накладную подписали, но в личном кабинете уже вторые сутки висит статус <b>«Ожидает подписания»</b>, счёта нет, оплатить нечего. Разработчик занят релизом и просит тебя принести разбор: что именно сломалось, где доказательство, что проверять после фикса.
+        </div>
+
+        <div class="kv">
+          <dt>Доступы</dt><dd>токен API: <code>Bearer qa-demo-token</code> · БД и логи прямо на странице</dd>
+          <dt>Дата</dt><dd>сегодня 17.09.2026, 10:30 МСК</dd>
+          <dt>ИИ</dt><dd>разрешён и приветствуется — в блоке 10 расскажешь, как им пользовался</dd>
+        </div>
+
+        <ul class="tight">
+          <li><strong>Рассуждай вслух.</strong> Оценивается ход мысли, а не только попадание в ответ.</li>
+          <li><strong>Всё сохраняется</strong> в браузере само; кнопка «Выгрузить ответы» наверху соберёт отчёт для разбора.</li>
+          <li><strong>Не успеть всё — нормально.</strong> Блоки 07–10 обсуждаем голосом, если останется время.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 01 HTTP -->
+    <section class="sec" id="http">
+      <div class="sec-h">
+        <span class="idx">01</span>
+        <div>
+          <h2>Разминка: HTTP</h2>
+          <p class="sub">Быстрые вопросы по кодам и методам — на тех ситуациях, которые встретятся дальше в задании.</p>
+        </div>
+        <div class="sec-meta"><span class="chip time">4 мин</span><span class="chip pts" data-pts="http">0 б</span></div>
+      </div>
+      <div class="sec-b">
+        <div class="tasks" data-block="http"></div>
+        <div class="task-foot"><button class="btn btn-primary btn-sm" data-check="http">Проверить блок</button></div>
+      </div>
+    </section>
+
+    <!-- 02 SQL -->
+    <section class="sec" id="sql">
+      <div class="sec-h">
+        <span class="idx">02</span>
+        <div>
+          <h2>SQL: найти следы инцидента в базе</h2>
+          <p class="sub">Реальный SQL-движок в браузере. Пиши запрос, жми «Выполнить» — увидишь настоящий результат. Проверяется результат, а не текст запроса.</p>
+        </div>
+        <div class="sec-meta"><span class="chip time">12 мин</span><span class="chip pts" data-pts="sql">0 б</span></div>
+      </div>
+      <div class="sec-b">
+        <div class="schema" id="schema"></div>
+        <div id="sqlWarn"></div>
+        <div class="tasks" data-block="sql"></div>
+      </div>
+    </section>
+
+    <!-- 03 API -->
+    <section class="sec" id="api">
+      <div class="sec-h">
+        <span class="idx">03</span>
+        <div>
+          <h2>API: разобраться запросами</h2>
+          <p class="sub">Живая консоль к стенду Тракта. Отвечает настоящий мок: коды, заголовки, тела ответов — как у боевого сервиса.</p>
+        </div>
+        <div class="sec-meta"><span class="chip time">12 мин</span><span class="chip pts" data-pts="api">0 б</span></div>
+      </div>
+      <div class="sec-b">
+        <div class="api">
+          <div class="api-pane">
+            <div class="pane-h">Запрос</div>
+            <div class="req-line">
+              <select id="apiMethod" aria-label="HTTP-метод">
+                <option>GET</option><option>POST</option><option>PUT</option><option>PATCH</option><option>DELETE</option><option>HEAD</option><option>OPTIONS</option>
+              </select>
+              <input type="text" class="mono" id="apiPath" value="/v1/ping" aria-label="Путь" spellcheck="false">
+            </div>
+            <input type="text" class="mono" id="apiHeaders" placeholder="Заголовки: Authorization: Bearer ..." aria-label="Заголовки" spellcheck="false">
+            <textarea class="mono" id="apiBody" rows="3" placeholder="Тело запроса (JSON)" spellcheck="false"></textarea>
+            <div class="task-foot">
+              <button class="btn btn-primary btn-sm" id="apiSend">Отправить</button>
+              <button class="btn btn-sm btn-ghost" id="apiClear">Очистить журнал</button>
+            </div>
+            <div class="pane-h">Документация стенда <span style="text-transform:none;letter-spacing:0;font-weight:400">(как обычно, неполная)</span></div>
+            <div class="docs" id="apiDocs"></div>
+          </div>
+          <div class="api-pane">
+            <div class="pane-h">Ответ</div>
+            <div class="resp" id="apiResp"><div class="resp-status idle">— запроса ещё не было</div><div class="resp-body"><pre>Начни с <code>GET /v1/ping</code>, а дальше ходи по системе сам.</pre></div></div>
+            <div class="pane-h">Журнал запросов <span style="text-transform:none;letter-spacing:0;font-weight:400">(интервьюер увидит его в отчёте)</span></div>
+            <div class="journal" id="apiJournal"></div>
+          </div>
+        </div>
+        <div class="tasks" data-block="api"></div>
+        <div class="task-foot"><button class="btn btn-primary btn-sm" data-check="api">Проверить блок</button></div>
+      </div>
+    </section>
+
+    <!-- 04 LOGS -->
+    <section class="sec" id="logs">
+      <div class="sec-h">
+        <span class="idx">04</span>
+        <div>
+          <h2>Логи: найти корень в потоке</h2>
+          <p class="sub">Выгрузка из Loki за 16.09, 10:12–10:35. Фильтр ищет подстроку по всей строке, чипы сужают по сервису и уровню.</p>
+        </div>
+        <div class="sec-meta"><span class="chip time">10 мин</span><span class="chip pts" data-pts="logs">0 б</span></div>
+      </div>
+      <div class="sec-b">
+        <div class="logbar">
+          <input type="text" class="mono" id="logQ" placeholder="поиск по строке: trace_id, vat, DLQ, 4471…" aria-label="Поиск по логам" spellcheck="false">
+          <span id="logChips"></span>
+        </div>
+        <div class="res-meta" id="logMeta"></div>
+        <div class="logs" id="logView"></div>
+        <div class="tasks" data-block="logs"></div>
+        <div class="task-foot"><button class="btn btn-primary btn-sm" data-check="logs">Проверить блок</button></div>
+      </div>
+    </section>
+
+    <!-- 05 QUEUES -->
+    <section class="sec" id="mq">
+      <div class="sec-h">
+        <span class="idx">05</span>
+        <div>
+          <h2>Очереди: Kafka и RabbitMQ</h2>
+          <p class="sub">Снимок состояния топика <code>trip.signed.v1</code> на момент инцидента. Ключ партиционирования — <code>company_id</code>.</p>
+        </div>
+        <div class="sec-meta"><span class="chip time">8 мин</span><span class="chip pts" data-pts="mq">0 б</span></div>
+      </div>
+      <div class="sec-b">
+        <div class="tw">
+          <div style="padding:12px 14px;display:flex;flex-direction:column;gap:10px">
+            <div class="res-meta">топик <b>trip.signed.v1</b> · 3 партиции · consumer-group <b>billing-consumer</b> · retention 7d</div>
+            <div class="parts" id="parts"></div>
+            <div class="res-meta">DLQ <b>trip.signed.v1.DLQ</b>: 3 сообщения, все с <b>company_id=1</b>, первое — offset 88214</div>
+          </div>
+        </div>
+        <div class="tasks" data-block="mq"></div>
+        <div class="task-foot"><button class="btn btn-primary btn-sm" data-check="mq">Проверить блок</button></div>
+      </div>
+    </section>
+
+    <!-- 06 PROXY -->
+    <section class="sec" id="proxy">
+      <div class="sec-h">
+        <span class="idx">06</span>
+        <div>
+          <h2>Подмена трафика</h2>
+          <p class="sub">Разработчик спрашивает: «а как экран должен выглядеть после фикса?» Собери это подменой ответа, не дожидаясь бэкенда.</p>
+        </div>
+        <div class="sec-meta"><span class="chip time">7 мин</span><span class="chip pts" data-pts="proxy">0 б</span></div>
+      </div>
+      <div class="sec-b">
+        <div class="api">
+          <div class="api-pane">
+            <div class="pane-h">Правило подмены: ответ на <code>GET /v1/orders/4471</code></div>
+            <textarea class="mono" id="mockJson" rows="9" spellcheck="false"></textarea>
+            <div class="task-foot">
+              <button class="btn btn-primary btn-sm" id="mockApply">Применить подмену</button>
+              <button class="btn btn-sm btn-ghost" id="mockReset">Вернуть реальный ответ</button>
+            </div>
+            <div id="mockVerdict"></div>
+          </div>
+          <div class="api-pane">
+            <div class="pane-h">ЛК клиента «Северторг» — рендерится из ответа слева</div>
+            <div class="lk" id="lkCard"></div>
+          </div>
+        </div>
+        <div class="tasks" data-block="proxy"></div>
+        <div class="task-foot"><button class="btn btn-primary btn-sm" data-check="proxy">Проверить блок</button></div>
+      </div>
+    </section>
+
+    <!-- 07 CASES -->
+    <section class="sec" id="cases">
+      <div class="sec-h">
+        <span class="idx">07</span>
+        <div>
+          <h2>Тест-дизайн: кейсы на фикс</h2>
+          <p class="sub">Фикс: <code>billing-consumer</code> перестаёт падать на пустой ставке НДС, а <code>POST /sign</code> получает ключ идемпотентности. Проверяется не количество кейсов, а покрытие рисков.</p>
+        </div>
+        <div class="sec-meta"><span class="chip time">10 мин</span><span class="chip pts" data-pts="cases">ручная оценка</span></div>
+      </div>
+      <div class="sec-b">
+        <div class="tasks" data-block="cases"></div>
+        <div class="task-foot"><button class="btn btn-primary btn-sm" data-check="cases">Проверить блок</button></div>
+      </div>
+    </section>
+
+    <!-- 08 GIT -->
+    <section class="sec" id="git">
+      <div class="sec-h">
+        <span class="idx">08</span>
+        <div>
+          <h2>Git: фикс едет на прод</h2>
+          <p class="sub">В репозитории <code>trakt-billing</code> ветки <code>main</code>, <code>develop</code>, <code>release/1.12</code>. На проде сейчас тег <code>v1.12.3</code>.</p>
+        </div>
+        <div class="sec-meta"><span class="chip time">6 мин</span><span class="chip pts" data-pts="git">0 б</span></div>
+      </div>
+      <div class="sec-b">
+        <div class="tw"><pre id="gitLog" style="padding:12px 14px"></pre></div>
+        <div class="tasks" data-block="git"></div>
+        <div class="task-foot"><button class="btn btn-primary btn-sm" data-check="git">Проверить блок</button></div>
+      </div>
+    </section>
+
+    <!-- 09 ESTIMATE -->
+    <section class="sec" id="est">
+      <div class="sec-h">
+        <span class="idx">09</span>
+        <div>
+          <h2>Оценка: сколько стоит проверить фикс</h2>
+          <p class="sub">ПМ просит цифру к вечеру. Заполни три точки по подзадачам и защити итог.</p>
+        </div>
+        <div class="sec-meta"><span class="chip time">7 мин</span><span class="chip pts" data-pts="est">0 б</span></div>
+      </div>
+      <div class="sec-b">
+        <div class="est tw">
+          <table>
+            <thead><tr><th>Подзадача</th><th>O, ч</th><th>M, ч</th><th>P, ч</th><th>E = (O+4M+P)/6</th><th>σ = (P−O)/6</th></tr></thead>
+            <tbody id="estRows"></tbody>
+            <tfoot><tr><th>Итого</th><th></th><th></th><th></th><th id="estE" class="calc"></th><th id="estS" class="calc"></th></tr></tfoot>
+          </table>
+        </div>
+        <div class="tasks" data-block="est"></div>
+        <div class="task-foot"><button class="btn btn-primary btn-sm" data-check="est">Проверить блок</button></div>
+      </div>
+    </section>
+
+    <!-- 10 AI -->
+    <section class="sec" id="ai">
+      <div class="sec-h">
+        <span class="idx">10</span>
+        <div>
+          <h2>Работа с ИИ</h2>
+          <p class="sub">ИИ здесь разрешён везде. Оценивается не факт использования, а умение сформулировать запрос и проверить ответ.</p>
+        </div>
+        <div class="sec-meta"><span class="chip time">8 мин</span><span class="chip pts" data-pts="ai">0 б</span></div>
+      </div>
+      <div class="sec-b">
+        <div class="note"><b>Разбор ответа нейросети.</b> Коллега скинул инцидент в чат-бот вместе с логами и получил ответ ниже. Отметь все утверждения, которые нельзя нести разработчику, — неверные или непроверяемые по имеющимся данным.</div>
+        <div class="stmts" id="aiStmts"></div>
+        <div id="aiVerdict"></div>
+        <div class="task-foot"><button class="btn btn-primary btn-sm" id="aiCheck">Проверить разбор</button></div>
+        <hr class="hr">
+        <div class="tasks" data-block="ai"></div>
+      </div>
+    </section>
+
+    <!-- DONE -->
+    <section class="sec" id="done">
+      <div class="sec-h">
+        <span class="idx">11</span>
+        <div>
+          <h2>Итог</h2>
+          <p class="sub">Автобаллы считаются только по проверяемым заданиям. Блоки с текстом и тест-кейсами разбираем голосом.</p>
+        </div>
+      </div>
+      <div class="sec-b">
+        <div class="score-grid" id="scoreGrid"></div>
+        <div class="tasks" data-block="done"></div>
+        <div class="task-foot">
+          <button class="btn btn-primary" id="exportBtn2">Собрать отчёт</button>
+          <button class="btn btn-ghost btn-sm" id="resetBtn">Очистить всё и начать заново</button>
+        </div>
+        <div class="review">
+          <div class="rh">Как читать результат</div>
+          <ul>
+            <li><b>60–100 автобаллов</b> — уверенный middle+/senior по хардам; дальше смотри качество формулировок в текстовых ответах.</li>
+            <li><b>Красные флаги:</b> лезет в БД раньше логов и API; «поправим данные в проде руками» без слова «миграция/владелец данных»; в тест-кейсах только позитивные сценарии; оценка одной цифрой без вопроса «что входит в задачу».</li>
+            <li><b>Зелёные флаги:</b> сам заметил дубли документов; спросил, кто владелец поля <code>vat_rate</code>; в оценке отделил «моё время» от «времени ожидания»; ИИ использовал, но перепроверил по логам.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/alasql/4.19.1/alasql.min.js"></script>
+<script>
+"use strict";
+/* ============================================================
+   ДАННЫЕ СТЕНДА «ТРАКТ». Сегодня: 2026-09-17 10:30 МСК.
+   Инцидент INC-4471: подпись прошла, счёт не создан.
+   ============================================================ */
+
+const DB = {
+  companies: [
+    {id:1, name:'Северторг',      inn:'7712345678', vat_rate:null, created_at:'2024-03-11'},
+    {id:2, name:'Автолига',       inn:'7714567890', vat_rate:20,   created_at:'2023-11-02'},
+    {id:3, name:'ТрансКом',       inn:'5027123456', vat_rate:20,   created_at:'2022-06-17'},
+    {id:4, name:'Мега-Логистик',  inn:'7728001122', vat_rate:20,   created_at:'2024-01-29'},
+    {id:5, name:'Промгруз',       inn:'6165009988', vat_rate:10,   created_at:'2025-02-04'},
+    {id:6, name:'Волга-Транс',    inn:'6316004411', vat_rate:null, created_at:'2026-08-30'},
+    {id:7, name:'Северторг-Юг',   inn:'6154007733', vat_rate:null, created_at:'2026-09-01'},
+    {id:8, name:'Каспий-Фрахт',   inn:'3016002255', vat_rate:20,   created_at:'2023-04-19'}
+  ],
+  orders: [
+    {id:4460, company_id:2, created_at:'2026-09-12 08:12:00', status:'paid',          amount:73400},
+    {id:4461, company_id:3, created_at:'2026-09-12 11:40:00', status:'paid',          amount:118000},
+    {id:4462, company_id:4, created_at:'2026-09-12 15:05:00', status:'invoiced',      amount:45600},
+    {id:4463, company_id:5, created_at:'2026-09-13 07:55:00', status:'paid',          amount:232100},
+    {id:4464, company_id:2, created_at:'2026-09-13 09:30:00', status:'cancelled',     amount:51000},
+    {id:4465, company_id:8, created_at:'2026-09-13 13:20:00', status:'paid',          amount:97800},
+    {id:4466, company_id:3, created_at:'2026-09-14 08:05:00', status:'invoiced',      amount:64300},
+    {id:4467, company_id:4, created_at:'2026-09-14 10:45:00', status:'paid',          amount:156900},
+    {id:4468, company_id:1, created_at:'2026-09-15 08:40:00', status:'awaiting_sign', amount:92300},
+    {id:4469, company_id:2, created_at:'2026-09-15 12:10:00', status:'invoiced',      amount:82500},
+    {id:4470, company_id:6, created_at:'2026-09-15 14:22:00', status:'awaiting_sign', amount:204750},
+    {id:4471, company_id:1, created_at:'2026-09-16 09:05:00', status:'awaiting_sign', amount:148500},
+    {id:4472, company_id:5, created_at:'2026-09-16 09:48:00', status:'paid',          amount:39900},
+    {id:4473, company_id:8, created_at:'2026-09-16 10:02:00', status:'invoiced',      amount:143200},
+    {id:4474, company_id:1, created_at:'2026-09-16 07:15:00', status:'awaiting_sign', amount:61000},
+    {id:4475, company_id:3, created_at:'2026-09-16 11:36:00', status:'paid',          amount:67400},
+    {id:4476, company_id:4, created_at:'2026-09-16 13:19:00', status:'invoiced',      amount:91600},
+    {id:4477, company_id:7, created_at:'2026-09-16 03:10:00', status:'awaiting_sign', amount:37800},
+    {id:4478, company_id:2, created_at:'2026-09-16 16:44:00', status:'paid',          amount:58300},
+    {id:4479, company_id:6, created_at:'2026-09-16 06:50:00', status:'awaiting_sign', amount:88900},
+    {id:4480, company_id:5, created_at:'2026-09-17 08:05:00', status:'invoiced',      amount:74900},
+    {id:4481, company_id:1, created_at:'2026-09-17 08:50:00', status:'draft',         amount:0},
+    {id:4482, company_id:8, created_at:'2026-09-17 09:12:00', status:'draft',         amount:0},
+    {id:4483, company_id:3, created_at:'2026-09-17 09:40:00', status:'awaiting_sign', amount:55000}
+  ],
+  trips: [
+    {id:5460, order_id:4460, driver:'Гущин А.В.',    started_at:'2026-09-12 09:00:00', finished_at:'2026-09-12 19:20:00', status:'delivered'},
+    {id:5461, order_id:4461, driver:'Мамедов Р.И.',  started_at:'2026-09-12 12:10:00', finished_at:'2026-09-13 08:05:00', status:'delivered'},
+    {id:5462, order_id:4462, driver:'Сотников П.П.', started_at:'2026-09-12 16:00:00', finished_at:'2026-09-13 11:40:00', status:'delivered'},
+    {id:5463, order_id:4463, driver:'Гущин А.В.',    started_at:'2026-09-13 08:30:00', finished_at:'2026-09-14 06:15:00', status:'delivered'},
+    {id:5464, order_id:4464, driver:'Юшков Д.С.',    started_at:null,                  finished_at:null,                  status:'cancelled'},
+    {id:5465, order_id:4465, driver:'Мамедов Р.И.',  started_at:'2026-09-13 14:00:00', finished_at:'2026-09-14 09:55:00', status:'delivered'},
+    {id:5466, order_id:4466, driver:'Сотников П.П.', started_at:'2026-09-14 09:00:00', finished_at:'2026-09-14 20:10:00', status:'delivered'},
+    {id:5467, order_id:4467, driver:'Юшков Д.С.',    started_at:'2026-09-14 11:30:00', finished_at:'2026-09-15 07:40:00', status:'delivered'},
+    {id:5468, order_id:4468, driver:'Гущин А.В.',    started_at:'2026-09-15 09:15:00', finished_at:'2026-09-15 21:05:00', status:'delivered'},
+    {id:5469, order_id:4469, driver:'Мамедов Р.И.',  started_at:'2026-09-15 13:00:00', finished_at:'2026-09-16 05:30:00', status:'delivered'},
+    {id:5470, order_id:4470, driver:'Сотников П.П.', started_at:'2026-09-15 15:00:00', finished_at:'2026-09-16 08:45:00', status:'delivered'},
+    {id:5471, order_id:4471, driver:'Юшков Д.С.',    started_at:'2026-09-16 09:40:00', finished_at:'2026-09-16 10:05:00', status:'delivered'},
+    {id:5472, order_id:4472, driver:'Гущин А.В.',    started_at:'2026-09-16 10:20:00', finished_at:'2026-09-16 18:00:00', status:'delivered'},
+    {id:5473, order_id:4473, driver:'Мамедов Р.И.',  started_at:'2026-09-16 10:40:00', finished_at:'2026-09-16 22:15:00', status:'delivered'},
+    {id:5474, order_id:4474, driver:'Сотников П.П.', started_at:'2026-09-16 07:50:00', finished_at:'2026-09-16 09:30:00', status:'delivered'},
+    {id:5475, order_id:4475, driver:'Юшков Д.С.',    started_at:'2026-09-16 12:00:00', finished_at:'2026-09-16 21:40:00', status:'delivered'},
+    {id:5476, order_id:4476, driver:'Гущин А.В.',    started_at:'2026-09-16 14:00:00', finished_at:'2026-09-17 06:20:00', status:'delivered'},
+    {id:5477, order_id:4477, driver:'Мамедов Р.И.',  started_at:'2026-09-16 03:40:00', finished_at:'2026-09-16 09:10:00', status:'delivered'},
+    {id:5478, order_id:4478, driver:'Сотников П.П.', started_at:'2026-09-16 17:10:00', finished_at:'2026-09-17 04:05:00', status:'delivered'},
+    {id:5479, order_id:4479, driver:'Юшков Д.С.',    started_at:'2026-09-16 07:20:00', finished_at:'2026-09-16 16:50:00', status:'delivered'},
+    {id:5480, order_id:4480, driver:'Гущин А.В.',    started_at:'2026-09-17 08:30:00', finished_at:'2026-09-17 09:55:00', status:'delivered'},
+    {id:5483, order_id:4483, driver:'Мамедов Р.И.',  started_at:'2026-09-17 10:00:00', finished_at:null,                  status:'in_progress'}
+  ],
+  documents: [
+    {id:9060, trip_id:5460, external_id:'ETRN-4460-01', type:'etrn', status:'signed',       created_at:'2026-09-12 19:31:00'},
+    {id:9061, trip_id:5461, external_id:'ETRN-4461-01', type:'etrn', status:'signed',       created_at:'2026-09-13 08:22:00'},
+    {id:9062, trip_id:5462, external_id:'ETRN-4462-01', type:'etrn', status:'signed',       created_at:'2026-09-13 11:58:00'},
+    {id:9063, trip_id:5463, external_id:'ETRN-4463-01', type:'etrn', status:'signed',       created_at:'2026-09-14 06:40:00'},
+    {id:9065, trip_id:5465, external_id:'ETRN-4465-01', type:'etrn', status:'signed',       created_at:'2026-09-14 10:12:00'},
+    {id:9066, trip_id:5466, external_id:'ETRN-4466-01', type:'etrn', status:'signed',       created_at:'2026-09-14 20:33:00'},
+    {id:9067, trip_id:5467, external_id:'ETRN-4467-01', type:'etrn', status:'signed',       created_at:'2026-09-15 07:59:00'},
+    {id:9068, trip_id:5468, external_id:'ETRN-4468-01', type:'etrn', status:'signed',       created_at:'2026-09-15 21:26:00'},
+    {id:9069, trip_id:5469, external_id:'ETRN-4469-01', type:'etrn', status:'signed',       created_at:'2026-09-16 05:47:00'},
+    {id:9070, trip_id:5470, external_id:'ETRN-4470-01', type:'etrn', status:'signed',       created_at:'2026-09-16 09:02:00'},
+    {id:9071, trip_id:5470, external_id:'ETRN-4470-01', type:'etrn', status:'signed',       created_at:'2026-09-16 09:02:14'},
+    {id:9101, trip_id:5471, external_id:'ETRN-4471-01', type:'etrn', status:'signed',       created_at:'2026-09-16 10:14:03'},
+    {id:9102, trip_id:5471, external_id:'ETRN-4471-01', type:'etrn', status:'signed',       created_at:'2026-09-16 10:14:07'},
+    {id:9103, trip_id:5471, external_id:'ETRN-4471-01', type:'etrn', status:'signed',       created_at:'2026-09-16 10:14:19'},
+    {id:9072, trip_id:5472, external_id:'ETRN-4472-01', type:'etrn', status:'signed',       created_at:'2026-09-16 18:14:00'},
+    {id:9073, trip_id:5473, external_id:'ETRN-4473-01', type:'etrn', status:'signed',       created_at:'2026-09-16 22:29:00'},
+    {id:9074, trip_id:5474, external_id:'ETRN-4474-01', type:'etrn', status:'signed',       created_at:'2026-09-16 09:44:00'},
+    {id:9075, trip_id:5475, external_id:'ETRN-4475-01', type:'etrn', status:'signed',       created_at:'2026-09-16 21:55:00'},
+    {id:9076, trip_id:5476, external_id:'ETRN-4476-01', type:'etrn', status:'signed',       created_at:'2026-09-17 06:38:00'},
+    {id:9077, trip_id:5477, external_id:'ETRN-4477-01', type:'etrn', status:'signed',       created_at:'2026-09-16 09:25:00'},
+    {id:9078, trip_id:5478, external_id:'ETRN-4478-01', type:'etrn', status:'signed',       created_at:'2026-09-17 04:20:00'},
+    {id:9079, trip_id:5479, external_id:'ETRN-4479-01', type:'etrn', status:'signed',       created_at:'2026-09-16 17:06:00'},
+    {id:9080, trip_id:5480, external_id:'ETRN-4480-01', type:'etrn', status:'signed',       created_at:'2026-09-17 10:08:00'},
+    {id:9083, trip_id:5483, external_id:'ETRN-4483-01', type:'etrn', status:'pending_sign', created_at:'2026-09-17 10:05:00'}
+  ],
+  invoices: [
+    {id:7060, order_id:4460, amount:73400,  status:'paid',   created_at:'2026-09-12 19:33:00'},
+    {id:7061, order_id:4461, amount:118000, status:'paid',   created_at:'2026-09-13 08:24:00'},
+    {id:7062, order_id:4462, amount:45600,  status:'issued', created_at:'2026-09-13 12:00:00'},
+    {id:7063, order_id:4463, amount:232100, status:'paid',   created_at:'2026-09-14 06:42:00'},
+    {id:7065, order_id:4465, amount:97800,  status:'paid',   created_at:'2026-09-14 10:14:00'},
+    {id:7066, order_id:4466, amount:64300,  status:'issued', created_at:'2026-09-14 20:35:00'},
+    {id:7067, order_id:4467, amount:156900, status:'paid',   created_at:'2026-09-15 08:01:00'},
+    {id:7069, order_id:4469, amount:82500,  status:'issued', created_at:'2026-09-16 05:49:00'},
+    {id:7072, order_id:4472, amount:39900,  status:'paid',   created_at:'2026-09-16 18:16:00'},
+    {id:7073, order_id:4473, amount:143200, status:'issued', created_at:'2026-09-16 22:31:00'},
+    {id:7075, order_id:4475, amount:67400,  status:'paid',   created_at:'2026-09-16 21:57:00'},
+    {id:7076, order_id:4476, amount:91600,  status:'issued', created_at:'2026-09-17 06:40:00'},
+    {id:7078, order_id:4478, amount:58300,  status:'paid',   created_at:'2026-09-17 04:22:00'},
+    {id:7080, order_id:4480, amount:74900,  status:'issued', created_at:'2026-09-17 10:10:00'}
+  ]
+};
+
+const SCHEMA = [
+  {t:'companies', cols:['id PK','name','inn','vat_rate','created_at'], n:8},
+  {t:'orders',    cols:['id PK','company_id FK','created_at','status','amount'], n:24},
+  {t:'trips',     cols:['id PK','order_id FK','driver','started_at','finished_at','status'], n:22},
+  {t:'documents', cols:['id PK','trip_id FK','external_id','type','status','created_at'], n:24},
+  {t:'invoices',  cols:['id PK','order_id FK','amount','status','created_at'], n:14}
+];
+
+/* ---------- ЛОГИ: выгрузка 16.09.2026 10:12–10:35 ---------- */
+const TRACE = '7f3a1c6b9d2e4a55';
+const LOGS = [
+['10:12:01.442','INFO','gateway','GET /v1/orders?limit=20 200 in 31ms user=client:3 trace_id=91cc02aa4e7b1d30'],
+['10:12:03.118','DEBUG','order-api','cache hit orders:list:company=3 ttl=27s'],
+['10:12:09.870','INFO','gateway','GET /healthz 200 in 2ms'],
+['10:12:14.203','INFO','billing-consumer','consuming trip.signed.v1 partition=0 offset=88207 trip_id=5469 company_id=2'],
+['10:12:14.455','INFO','billing-consumer','invoice created id=7069 order_id=4469 amount=82500 company_id=2'],
+['10:12:14.501','INFO','billing-consumer','produced invoice.created.v1 key=2 partition=0 offset=41108'],
+['10:12:14.780','INFO','order-api','order 4469 status invoiced (invoice.created.v1 offset=41108)'],
+['10:12:31.006','WARN','gateway','401 unauthorized POST /v1/trips/5312/sign ip=185.203.44.9 ua=python-requests/2.31 (24 similar in 5m)'],
+['10:12:47.559','INFO','gateway','GET /v1/trips/5470 200 in 44ms user=client:6 trace_id=5ad0918c2fb14e77'],
+['10:13:02.331','DEBUG','doc-service','ofd session reused, expires in 1741s'],
+['10:13:20.884','INFO','gateway','POST /v1/orders 201 in 98ms user=client:8 trace_id=aa7719b0cc3e4d92'],
+['10:13:41.010','INFO','order-api','order 4482 created status=draft company_id=8'],
+['10:13:55.627','DEBUG','billing-consumer','consumer group heartbeat ok, assigned partitions [0,1,2]'],
+['10:14:02.318','INFO','gateway','POST /v1/trips/5471/sign 200 in 812ms user=client:1 trace_id='+TRACE],
+['10:14:02.401','INFO','doc-service','sign accepted trip_id=5471 external_id=ETRN-4471-01 trace_id='+TRACE],
+['10:14:02.990','INFO','doc-service','ofd POST /documents/sign -> 200 in 566ms trace_id='+TRACE],
+['10:14:03.104','INFO','doc-service','document created id=9101 external_id=ETRN-4471-01 status=signed'],
+['10:14:03.140','INFO','doc-service','produced trip.signed.v1 key=1 partition=2 offset=88214 trace_id='+TRACE],
+['10:14:03.402','INFO','billing-consumer','consuming trip.signed.v1 partition=2 offset=88214 trip_id=5471 company_id=1'],
+['10:14:03.455','ERROR','billing-consumer','failed to build invoice: vat_rate is null for company_id=1 (attempt 1/5) trace_id='+TRACE],
+['10:14:05.470','ERROR','billing-consumer','failed to build invoice: vat_rate is null for company_id=1 (attempt 2/5, backoff 2s)'],
+['10:14:07.233','INFO','gateway','POST /v1/trips/5471/sign 200 in 744ms user=client:1 trace_id=2b91e04f7ac3d118'],
+['10:14:07.880','WARN','doc-service','no Idempotency-Key in request, creating new document for external_id=ETRN-4471-01'],
+['10:14:07.901','INFO','doc-service','document created id=9102 external_id=ETRN-4471-01 status=signed'],
+['10:14:07.930','INFO','doc-service','produced trip.signed.v1 key=1 partition=2 offset=88215'],
+['10:14:09.512','ERROR','billing-consumer','failed to build invoice: vat_rate is null for company_id=1 (attempt 3/5, backoff 4s)'],
+['10:14:11.004','INFO','gateway','GET /v1/orders/4471 200 in 27ms user=client:1 trace_id=2b91e04f7ac3d118'],
+['10:14:11.220','DEBUG','order-api','order 4471 status=awaiting_sign invoice_id=null'],
+['10:14:17.660','ERROR','billing-consumer','failed to build invoice: vat_rate is null for company_id=1 (attempt 4/5, backoff 8s)'],
+['10:14:19.077','INFO','gateway','POST /v1/trips/5471/sign 200 in 690ms user=client:1 trace_id=c0d3fe1188a24b06'],
+['10:14:19.512','INFO','doc-service','document created id=9103 external_id=ETRN-4471-01 status=signed'],
+['10:14:19.690','INFO','doc-service','produced trip.signed.v1 key=1 partition=2 offset=88216'],
+['10:14:22.118','INFO','gateway','GET /v1/trips/5473 200 in 39ms user=client:8 trace_id=6e2b77aa09c14f31'],
+['10:14:33.845','ERROR','billing-consumer','failed to build invoice: vat_rate is null for company_id=1 (attempt 5/5, backoff 16s)'],
+['10:14:34.002','WARN','billing-consumer','retries exhausted, routing message to trip.signed.v1.DLQ partition=2 offset=88214 trip_id=5471'],
+['10:14:34.061','INFO','billing-consumer','offset committed partition=2 position=88215'],
+['10:14:34.310','ERROR','billing-consumer','failed to build invoice: vat_rate is null for company_id=1 offset=88215 (attempt 1/5)'],
+['10:14:36.900','INFO','gateway','GET /healthz 200 in 1ms'],
+['10:14:52.140','WARN','billing-consumer','retries exhausted, routing message to trip.signed.v1.DLQ partition=2 offset=88215 trip_id=5471'],
+['10:15:05.118','WARN','billing-consumer','retries exhausted, routing message to trip.signed.v1.DLQ partition=2 offset=88216 trip_id=5471'],
+['10:15:05.400','INFO','billing-consumer','offset committed partition=2 position=88217'],
+['10:15:12.733','DEBUG','order-api','order 4471 waiting for invoice.created.v1 since 10:14:03 (timeout 900s)'],
+['10:15:44.291','INFO','gateway','GET /v1/orders/4471 200 in 24ms user=client:1 trace_id=d18e330b7c9a4a12'],
+['10:16:02.010','INFO','billing-consumer','consuming trip.signed.v1 partition=1 offset=88219 trip_id=5473 company_id=8'],
+['10:16:02.288','INFO','billing-consumer','invoice created id=7073 order_id=4473 amount=143200 company_id=8'],
+['10:16:30.551','DEBUG','order-api','reconcile job: 6 orders in awaiting_sign with signed document and no invoice'],
+['10:17:11.004','INFO','gateway','GET /healthz 200 in 2ms'],
+['10:17:48.219','WARN','gateway','slow upstream tariff-service GET /v1/tariffs/zones 1204ms trace_id=c41d5a7e33b0417f'],
+['10:18:02.660','INFO','doc-service','ofd POST /documents/sign -> 200 in 498ms trip_id=5480'],
+['10:19:14.877','DEBUG','billing-consumer','dlq depth trip.signed.v1.DLQ = 3'],
+['10:20:03.441','INFO','gateway','GET /v1/orders?status=awaiting_sign 200 in 51ms user=support:2 trace_id=b7220ce4d1f84a08'],
+['10:21:30.119','ERROR','gateway','upstream tariff-service returned 502 in 30011ms GET /v1/tariffs/zones trace_id=c41d5a7e33b0417f'],
+['10:21:30.204','WARN','tariff-service','http pool exhausted, active=64 queued=118, dropping request'],
+['10:21:44.900','INFO','tariff-service','pool recovered, active=12 queued=0'],
+['10:22:09.318','INFO','gateway','GET /v1/tariffs/zones 200 in 210ms trace_id=f0a1b22c8e694d55'],
+['10:23:00.700','DEBUG','order-api','gc pause 118ms, heap 512/1024 MB'],
+['10:24:18.226','INFO','gateway','POST /v1/trips/5478/sign 200 in 702ms user=client:2 trace_id=3c99ab410e7d4f60'],
+['10:24:18.990','INFO','doc-service','document created id=9078 external_id=ETRN-4478-01 status=signed'],
+['10:24:19.330','INFO','billing-consumer','invoice created id=7078 order_id=4478 amount=58300 company_id=2'],
+['10:25:41.552','INFO','order-api','order 4478 status invoiced'],
+['10:27:03.881','WARN','gateway','401 unauthorized GET /v1/orders ip=185.203.44.9 ua=python-requests/2.31'],
+['10:28:36.014','DEBUG','doc-service','ofd session refresh scheduled in 600s'],
+['10:29:50.402','INFO','gateway','GET /v1/orders/4471 200 in 22ms user=support:2 trace_id=0b41ee7a5c3d4188'],
+['10:30:10.909','DEBUG','order-api','order 4471 status=awaiting_sign invoice_id=null documents=3'],
+['10:31:22.664','INFO','billing-consumer','consumer lag partition=0 lag=0, partition=1 lag=0, partition=2 lag=0'],
+['10:33:04.130','WARN','order-api','support ticket INC-4471 linked to order 4471 by support:2'],
+['10:34:41.775','INFO','gateway','GET /healthz 200 in 1ms']
+].map(function(r){ return {ts:r[0], lvl:r[1], svc:r[2], msg:r[3]}; });
+
+const PARTITIONS = [
+  {p:0, end:88221, committed:88221, lag:0},
+  {p:1, end:88220, committed:88220, lag:0},
+  {p:2, end:88240, committed:88217, lag:23}
+];
+
+const GIT_LOG = [
+'$ git log --oneline --graph --all -12',
+'* 8f21ac0 (HEAD -> develop) BILL-902 ретраи billing-consumer с бэкоффом',
+'* 1d09bb4 BILL-898 логирование company_id в ошибках счёта',
+'| * 3ca7712 (origin/release/1.12, release/1.12) chore: bump 1.12.3',
+'| * b04e5f9 BILL-889 таймаут вызова ОФД 30s -> 10s',
+'| * 77c1a30 (tag: v1.12.3) BILL-884 фикс округления НДС',
+'|/',
+'* e5512cd Merge branch \'feature/idempotent-sign\' into develop',
+'|\\',
+'| * 9a3d004 BILL-877 Idempotency-Key в POST /sign (без миграции)',
+'| * 4be9911 BILL-877 тесты на повторную подпись',
+'|/',
+'* 0c7b615 (main) Merge branch \'release/1.11\' into main',
+'* 61af2de BILL-860 счета по рейсам с несколькими точками'
+].join('\n');
+
+/* ============================================================
+   МОК API СТЕНДА
+   ============================================================ */
+const TOKEN = 'Bearer qa-demo-token';
+const API_DOCS = [
+  ['GET','/v1/ping','без авторизации'],
+  ['GET','/v1/orders','?status=&companyId='],
+  ['GET','/v1/orders/{orderId}',''],
+  ['GET','/v1/trips/{tripId}',''],
+  ['POST','/v1/trips/{tripId}/sign','тело не требуется'],
+  ['POST','/v1/invoices','{ "orderId": 0 }']
+];
+let signCalls = [];
+
+function jsonOrder(o){
+  const inv = DB.invoices.find(function(i){return i.order_id===o.id;});
+  const trip = DB.trips.find(function(t){return t.order_id===o.id;});
+  const titles = {awaiting_sign:'Ожидает подписания', invoiced:'Счёт выставлен', paid:'Оплачен', draft:'Черновик', cancelled:'Отменён'};
+  return {
+    id:o.id, companyId:o.company_id, status:o.status, statusTitle:titles[o.status]||o.status,
+    amount:o.amount, currency:'RUB', createdAt:o.created_at,
+    tripId:trip?trip.id:null, invoiceId:inv?inv.id:null,
+    documentsCount: trip ? DB.documents.filter(function(d){return d.trip_id===trip.id;}).length : 0,
+    _links:{ company:'/v1/companies/'+o.company_id, invoices:'/v1/invoices?orderId='+o.id, trip: trip?('/v1/trips/'+trip.id):null }
+  };
+}
+function jsonTrip(t){
+  const o = DB.orders.find(function(x){return x.id===t.order_id;});
+  return {
+    id:t.id, orderId:t.order_id, driver:t.driver, status:t.status,
+    startedAt:t.started_at, finishedAt:t.finished_at,
+    companyId:o?o.company_id:null,
+    _links:{ documents:'/v1/trips/'+t.id+'/documents', order:'/v1/orders/'+t.order_id, sign:'POST /v1/trips/'+t.id+'/sign' }
+  };
+}
+function jsonDoc(d){
+  return {id:d.id, tripId:d.trip_id, externalId:d.external_id, type:d.type, status:d.status, createdAt:d.created_at};
+}
+function jsonCompany(c){
+  return {id:c.id, name:c.name, inn:c.inn, vatRate:c.vat_rate, createdAt:c.created_at,
+    _links:{orders:'/v1/orders?companyId='+c.id}};
+}
+
+function apiCall(method, rawPath, headerStr, bodyStr){
+  method = (method||'GET').toUpperCase();
+  const qi = rawPath.indexOf('?');
+  const path = (qi<0?rawPath:rawPath.slice(0,qi)).replace(/\/+$/,'') || '/';
+  const query = {};
+  if(qi>=0) rawPath.slice(qi+1).split('&').forEach(function(kv){
+    const p = kv.split('='); if(p[0]) query[decodeURIComponent(p[0])] = decodeURIComponent((p[1]||''));
+  });
+  const headers = {};
+  (headerStr||'').split(/[\n;]/).forEach(function(line){
+    const i = line.indexOf(':'); if(i>0) headers[line.slice(0,i).trim().toLowerCase()] = line.slice(i+1).trim();
+  });
+  const R = function(status, body, hdrs){ return {status:status, body:body, headers:Object.assign({'content-type':'application/json'}, hdrs||{})}; };
+
+  if(method==='OPTIONS') return R(204, null, {'allow':'GET, POST, OPTIONS'});
+  if(path==='/v1/ping') return R(200, {status:'ok', service:'gateway', version:'1.12.3', time:'2026-09-17T10:30:00+03:00',
+      _links:{orders:'/v1/orders', order:'/v1/orders/{orderId}', trip:'/v1/trips/{tripId}'}});
+
+  const auth = headers['authorization'] || '';
+  if(!auth) return R(401, {code:'unauthorized', message:'Требуется заголовок Authorization'}, {'www-authenticate':'Bearer realm="trakt"'});
+  if(auth.trim() !== TOKEN) return R(401, {code:'invalid_token', message:'Токен не распознан. На стенде используется Bearer qa-demo-token'});
+
+  let body = null;
+  if(bodyStr && bodyStr.trim()){
+    try { body = JSON.parse(bodyStr); }
+    catch(e){ return R(400, {code:'malformed_json', message:'Тело запроса не парсится как JSON: '+e.message}); }
+  }
+
+  let m;
+  if((m = path.match(/^\/v1\/orders$/))){
+    if(method!=='GET') return R(405, {code:'method_not_allowed'}, {'allow':'GET'});
+    let items = DB.orders.slice();
+    if(query.status) items = items.filter(function(o){return o.status===query.status;});
+    if(query.companyId) items = items.filter(function(o){return String(o.company_id)===String(query.companyId);});
+    return R(200, {total:items.length, items:items.map(jsonOrder)});
+  }
+  if((m = path.match(/^\/v1\/orders\/(\d+)$/))){
+    const o = DB.orders.find(function(x){return x.id===+m[1];});
+    if(!o) return R(404, {code:'order_not_found', message:'Заказ '+m[1]+' не найден'});
+    if(method!=='GET') return R(405, {code:'method_not_allowed'}, {'allow':'GET'});
+    return R(200, jsonOrder(o));
+  }
+  if((m = path.match(/^\/v1\/trips\/(\d+)$/))){
+    const t = DB.trips.find(function(x){return x.id===+m[1];});
+    if(!t) return R(404, {code:'trip_not_found', message:'Рейс '+m[1]+' не найден'});
+    if(method!=='GET') return R(405, {code:'method_not_allowed'}, {'allow':'GET'});
+    return R(200, jsonTrip(t));
+  }
+  if((m = path.match(/^\/v1\/trips\/(\d+)\/documents$/))){
+    const t = DB.trips.find(function(x){return x.id===+m[1];});
+    if(!t) return R(404, {code:'trip_not_found'});
+    if(method!=='GET') return R(405, {code:'method_not_allowed'}, {'allow':'GET'});
+    const docs = DB.documents.filter(function(d){return d.trip_id===t.id;});
+    return R(200, {total:docs.length, items:docs.map(jsonDoc)});
+  }
+  if((m = path.match(/^\/v1\/trips\/(\d+)\/sign$/))){
+    if(method!=='POST') return R(405, {code:'method_not_allowed'}, {'allow':'POST'});
+    const t = DB.trips.find(function(x){return x.id===+m[1];});
+    if(!t) return R(404, {code:'trip_not_found'});
+    const now = Date.now();
+    signCalls = signCalls.filter(function(ts){return now-ts < 60000;});
+    signCalls.push(now);
+    if(signCalls.length > 3) return R(429, {code:'too_many_requests', message:'Лимит: 3 запроса подписи в минуту'}, {'retry-after':'30'});
+    const docs = DB.documents.filter(function(d){return d.trip_id===t.id;});
+    const signed = docs.filter(function(d){return d.status==='signed';});
+    if(signed.length){
+      if(headers['idempotency-key']) return R(200, {result:'replayed', message:'Возвращён ранее созданный документ', document:jsonDoc(signed[0])});
+      return R(409, {code:'already_signed', message:'Рейс '+t.id+' уже подписан, документ '+signed[0].external_id,
+        hint:'Повтор без Idempotency-Key отклонён', _links:{documents:'/v1/trips/'+t.id+'/documents'}});
+    }
+    return R(202, {result:'accepted', message:'Запрос на подпись отправлен оператору ЭДО', pollAfterSec:20});
+  }
+  if((m = path.match(/^\/v1\/companies\/(\d+)$/))){
+    const c = DB.companies.find(function(x){return x.id===+m[1];});
+    if(!c) return R(404, {code:'company_not_found'});
+    if(method==='GET') return R(200, jsonCompany(c));
+    if(method==='PATCH'||method==='PUT') return R(403, {code:'forbidden',
+      message:'Справочник компаний доступен только на чтение: владелец данных — сервис НСИ, менять vatRate через этот API нельзя'});
+    return R(405, {code:'method_not_allowed'}, {'allow':'GET'});
+  }
+  if((m = path.match(/^\/v1\/invoices$/))){
+    if(method==='GET'){
+      let items = DB.invoices.slice();
+      if(query.orderId) items = items.filter(function(i){return String(i.order_id)===String(query.orderId);});
+      return R(200, {total:items.length, items:items.map(function(i){
+        return {id:i.id, orderId:i.order_id, amount:i.amount, status:i.status, createdAt:i.created_at};})});
+    }
+    if(method==='POST'){
+      if(!body || !body.orderId) return R(400, {code:'bad_request', message:'Ожидается {"orderId": <id>}'});
+      const o = DB.orders.find(function(x){return x.id===+body.orderId;});
+      if(!o) return R(404, {code:'order_not_found'});
+      const exists = DB.invoices.find(function(i){return i.order_id===o.id;});
+      if(exists) return R(409, {code:'invoice_exists', invoiceId:exists.id});
+      const trip = DB.trips.find(function(t){return t.order_id===o.id;});
+      const doc = trip && DB.documents.find(function(d){return d.trip_id===trip.id && d.status==='signed';});
+      if(!doc) return R(422, {code:'validation_failed', errors:[
+        {field:'documents', code:'not_signed', message:'По рейсу нет подписанной ЭТрН'}]});
+      const c = DB.companies.find(function(x){return x.id===o.company_id;});
+      if(c.vat_rate===null || c.vat_rate===undefined) return R(422, {code:'validation_failed', errors:[
+        {field:'company.vatRate', code:'required', message:'У компании '+c.id+' ('+c.name+') не заполнена ставка НДС — счёт собрать нельзя'}],
+        _links:{company:'/v1/companies/'+c.id}});
+      return R(201, {id:7999, orderId:o.id, amount:o.amount, status:'issued'});
+    }
+    return R(405, {code:'method_not_allowed'}, {'allow':'GET, POST'});
+  }
+  return R(404, {code:'not_found', message:'Нет такого ресурса: '+method+' '+path,
+    hint:'Полного списка эндпоинтов в документации нет — смотри поле _links в ответах'});
+}
+
+/* ============================================================
+   ЗАДАНИЯ
+   ============================================================ */
+const TASKS = {
+
+http: [
+ {id:'h1', type:'choice', pts:2,
+  q:'Клиент повторно отправил POST /v1/trips/5471/sign на уже подписанный рейс, без заголовка Idempotency-Key. Какой код ответа корректен?',
+  opts:['200 OK — операция и так уже выполнена','409 Conflict — состояние ресурса не позволяет выполнить операцию','400 Bad Request — клиент не должен был повторять','204 No Content — отвечать нечем'],
+  ans:1, model:'409. 200 был бы уместен только при переданном ключе идемпотентности — тогда это осознанный повтор той же операции.',
+  probe:['А если ключ идемпотентности передан — что тогда?','Чем 409 отличается от 422 в этом сценарии?']},
+
+ {id:'h2', type:'multi', pts:2,
+  q:'Какие методы идемпотентны по спецификации HTTP?',
+  opts:['GET','POST','PUT','DELETE','PATCH'], ans:[0,2,3],
+  model:'GET, PUT, DELETE (плюс HEAD/OPTIONS). POST и PATCH — нет.',
+  probe:['Идемпотентный — это то же, что безопасный (safe)?','DELETE второй раз вернёт 404 — он всё ещё идемпотентен?']},
+
+ {id:'h3', type:'choice', pts:2,
+  q:'doc-service принимает подпись, но реальный ответ от оператора ЭДО придёт через минуту. Какой код вернуть клиенту сразу?',
+  opts:['200 OK','201 Created','202 Accepted','102 Processing'], ans:2,
+  model:'202 Accepted + способ узнать результат (polling или вебхук).',
+  probe:['Что положишь в тело 202, чтобы клиент не долбил сервис каждую секунду?']},
+
+ {id:'h4', type:'choice', pts:2,
+  q:'На нагрузке gateway отдаёт то 502, то 504. Что это говорит о месте проблемы?',
+  opts:['Оба кода — про невалидный запрос клиента','502 — апстрим ответил мусором или упал, 504 — апстрим не ответил за таймаут; в обоих случаях проблема за гейтвеем','502 — сервис на техработах, 504 — клиент отвалился по сети','Это одно и то же, разница историческая'],
+  ans:1, model:'5xx — ответственность серверной стороны; 502 — плохой ответ апстрима, 504 — таймаут апстрима.',
+  probe:['А 503 чем отличается и какой заголовок к нему прилагается?']},
+
+ {id:'h5', type:'choice', pts:2,
+  q:'Токен валиден, но у роли support нет права подписывать накладные. Какой код?',
+  opts:['401 Unauthorized','403 Forbidden','404 Not Found','405 Method Not Allowed'], ans:1,
+  model:'403. 401 — «не знаю, кто ты», 403 — «знаю, но нельзя».',
+  probe:['Когда 404 вместо 403 — осознанное решение, а не ошибка?']},
+
+ {id:'h6', type:'choice', pts:2,
+  q:'Тело запроса — синтаксически валидный JSON, но не проходит бизнес-валидацию (не заполнена ставка НДС). Что вернуть?',
+  opts:['400 Bad Request','422 Unprocessable Entity','409 Conflict','500 Internal Server Error'], ans:1,
+  model:'422 (по соглашению команды может быть и 400, но тогда одинаково во всём API). Главное — в теле перечислены поля и коды ошибок.',
+  probe:['Что должно быть в теле ответа, чтобы фронт показал ошибку у нужного поля?']}
+],
+
+sql: [
+ {id:'s1', type:'sql', pts:6,
+  q:'Заказы, зависшие в подписании: статус awaiting_sign и созданы более 24 часов назад (сейчас 2026-09-17 10:30). Выведи id заказа, название компании, сумму и дату создания.',
+  sub:'Подсказка по данным: created_at — строка вида «2026-09-16 09:05:00».',
+  seed:'SELECT o.id, c.name, o.amount, o.created_at\nFROM orders o\nJOIN companies c ON c.id = o.company_id\nWHERE ...',
+  expect:[[4468,4470,4471,4474,4477,4479]], rows:6,
+  model:'6 заказов: 4468, 4470, 4471, 4474, 4477, 4479. Ловушка — заказ 4483 создан сегодня в 09:40, под «более 24 часов» не попадает.',
+  probe:['Заказ 4483 у тебя попал в выборку? Почему нет?','Как бы ты написал это условие, если бы «сейчас» брали из БД, а не хардкодом?']},
+
+ {id:'s2', type:'sql', pts:6,
+  q:'Найди дубликаты: external_id документов, по которым в таблице documents больше одной записи. Выведи external_id и количество.',
+  seed:'SELECT ...\nFROM documents\nGROUP BY ...',
+  expect:[['ETRN-4471-01','ETRN-4470-01']], rows:2,
+  model:'ETRN-4471-01 — 3 записи, ETRN-4470-01 — 2. Значит, дубли не разовый сбой, а повторяющийся сценарий.',
+  probe:['Это баг данных или баг кода? Кто должен был не дать создать второй документ?','Как ты покажешь это разработчику одним запросом в тикете?']},
+
+ {id:'s3', type:'sql', pts:8,
+  q:'По каждой компании посчитай заказы, у которых есть подписанный документ, но нет счёта. Выведи компанию, её ставку НДС и количество таких заказов.',
+  sub:'Это тот запрос, который объяснит разработчику масштаб инцидента.',
+  seed:'SELECT c.id, c.name, c.vat_rate, COUNT(*) AS stuck\nFROM orders o\n...',
+  expect:[[1,6,7],['Северторг','Волга-Транс','Северторг-Юг']], rows:3,
+  model:'Северторг (3), Волга-Транс (2), Северторг-Юг (1) — и у всех трёх vat_rate = NULL. Это и есть корреляция, ради которой писался запрос. Спрятанная ловушка: JOIN documents размножает строки дубликатами, и COUNT(*) даст 5 и 3 вместо 3 и 2 — нужен COUNT(DISTINCT o.id) либо EXISTS вместо JOIN.',
+  probe:['Что общего у этих трёх компаний?','Сколько у тебя получилось по «Северторгу» — 3 или 5? Откуда лишние строки? (дубликаты документов)','Почему LEFT JOIN invoices с условием в WHERE даёт не тот результат, что в ON?','Сколько застрявших заказов именно у компании «Северторг» — 3 или 4? LIKE «%Северторг%» поймает и «Северторг-Юг»']}
+],
+
+api: [
+ {id:'a1', type:'journal', pts:4,
+  q:'Достань карточку заказа 4471 через API. Сначала без заголовка Authorization, потом с ним — зафиксируй оба кода ответа.',
+  need:function(j){
+    const un = j.some(function(r){return r.status===401;});
+    const ok = j.some(function(r){return r.status===200 && /\/v1\/orders\/4471/.test(r.path);});
+    return un && ok;
+  },
+  needText:'в журнале должен появиться ответ 401 и успешный GET /v1/orders/4471',
+  model:'401 без токена (с заголовком WWW-Authenticate), 200 с токеном. В теле: status=awaiting_sign, invoiceId=null, documentsCount=3.',
+  probe:['Что в ответе 401 подсказывает, как именно авторизоваться?','Ты заметил documentsCount=3? Что это значит?']},
+
+ {id:'a2', type:'short', pts:4,
+  q:'Какое поле справочника компании не даёт собрать счёт? Напиши название поля.',
+  accept:[/vat/i, /ндс/i], ph:'например: some_field',
+  model:'vat_rate (в API — vatRate) у компании 1. Видно из 422 на POST /v1/invoices и из GET /v1/companies/1.',
+  probe:['Каким одним запросом ты это доказал?','Кто владелец этого поля и почему PATCH вернул 403?']},
+
+ {id:'a3', type:'choice', pts:3,
+  q:'Повторный POST /v1/trips/5471/sign вернул 409 already_signed. Это баг?',
+  opts:['Да, должно быть 200 — подпись же прошла','Нет: рейс уже подписан, а без ключа идемпотентности сервис правильно отказывается делать это ещё раз','Да, должно быть 422 — состояние не подходит','Нет, но правильнее было бы 204'],
+  ans:1, model:'409 корректен. Баг в другом: до фикса сервис 409 не отдавал и плодил документы — это видно в логах и в таблице documents.',
+  probe:['Тогда где здесь настоящий баг?']},
+
+ {id:'a4', type:'num', pts:3,
+  q:'Сколько документов реально создано по рейсу 5471? (проверь через API)',
+  ans:3, tol:0,
+  model:'3 документа с одинаковым external_id ETRN-4471-01 — следствие трёх ретраев клиента без Idempotency-Key.',
+  probe:['Каким эндпоинтом ты это увидел, если его нет в документации?']},
+
+ {id:'a5', type:'free', pts:0, rows:3,
+  q:'Какой один запрос ты покажешь разработчику как доказательство корневой причины и почему именно его?',
+  model:'POST /v1/invoices {"orderId":4471} → 422 с errors[0].field = company.vatRate. Один запрос показывает и симптом, и причину, и воспроизводится за секунду.',
+  probe:['Чем этот аргумент сильнее скриншота из ЛК?']}
+],
+
+logs: [
+ {id:'l1', type:'short', pts:3,
+  q:'trace_id первого (успешного) запроса на подпись рейса 5471:',
+  accept:[/7f3a1c6b9d2e4a55/i], ph:'скопируй из логов', mono:true,
+  model:'7f3a1c6b9d2e4a55 — он же тянется до ошибки в billing-consumer, это и есть сквозная цепочка.',
+  probe:['У ретраев клиента trace_id другой. Почему так и чем это мешает разбору?']},
+
+ {id:'l2', type:'choice', pts:3,
+  q:'Какой сервис первым сообщил об ошибке, которая и есть корень инцидента?',
+  opts:['gateway','doc-service','billing-consumer','tariff-service'], ans:2,
+  model:'billing-consumer: «failed to build invoice: vat_rate is null for company_id=1».',
+  probe:['А кто виноват: billing-consumer, который упал, или тот, кто пустил компанию без ставки НДС?']},
+
+ {id:'l3', type:'num', pts:2, q:'Сколько попыток обработки сделал консьюмер, прежде чем увести сообщение в DLQ?', ans:5, tol:0,
+  model:'5 попыток с растущим бэкоффом (2, 4, 8, 16 c), затем DLQ.',
+  probe:['Сколько суммарно времени он держал партицию? Как это связано с лагом?']},
+
+ {id:'l4', type:'short', pts:3, q:'Offset первого сообщения, ушедшего в DLQ:', accept:[/88214/], ph:'число', mono:true,
+  model:'88214 (партиция 2). Следом ушли 88215 и 88216 — по одному на каждый дубликат документа.',
+  probe:['Почему в DLQ оказалось ровно 3 сообщения?']},
+
+ {id:'l5', type:'choice', pts:3,
+  q:'Что в этой выгрузке — ложный след?',
+  opts:['401 от сканера с ip=185.203.44.9','502 и pool exhausted у tariff-service в 10:21','gc pause 118ms в order-api','Ничего, все записи относятся к инциденту'],
+  ans:1, model:'502 tariff-service — другой trace_id, другое время, к подписи и счёту отношения не имеет. 401-спам и GC — шум, но их редко принимают за причину, а 502 выглядит убедительно.',
+  probe:['Как ты отличил? По времени, по trace_id или по смыслу?']},
+
+ {id:'l6', type:'choice', pts:3,
+  q:'Почему в ЛК висит «Ожидает подписания», хотя подпись прошла и документ подписан?',
+  opts:['Фронт кэширует статус заказа','order-api меняет статус только по событию invoice.created.v1, а оно не пришло — счёт не создан','doc-service не сохранил документ','Статус меняется по крону раз в сутки'],
+  ans:1, model:'Статус в order-api — производная от события о счёте. Нет счёта → нет события → статус не двигается. Строка «order 4471 waiting for invoice.created.v1» это подтверждает.',
+  probe:['Это баг или архитектурное решение? Что бы ты предложил показывать клиенту в такой ситуации?']},
+
+ {id:'l7', type:'free', pts:0, rows:3,
+  q:'Ты идёшь к разработчику. Три предложения: что сломалось, чем доказано, что просишь сделать.',
+  model:'Ждём: конкретика (vat_rate NULL у компании 1), доказательство (лог + 422 от API + SQL по 6 заказам), просьба разделена на «починить данные» и «починить код», плюс вопрос про остальные 5 заказов.',
+  probe:['Что делаем с уже застрявшими 6 заказами — руками или кодом?','Кому эскалируешь, если разработчик скажет «это данные, не мой баг»?']}
+],
+
+mq: [
+ {id:'m1', type:'choice', pts:4,
+  q:'Лаг растёт только на партиции 2. Чем это объясняется?',
+  opts:['Брокер неравномерно раскладывает сообщения по партициям','Ключ партиционирования — company_id, все события «Северторга» попадают в партицию 2, и на каждом «отравленном» сообщении консьюмер тратит ~30 секунд на ретраи — остальные сообщения этой партиции стоят в очереди','У партиции 2 меньше реплик, поэтому она медленнее','Consumer group не сделал ребаланс после деплоя'],
+  ans:1, model:'Head-of-line blocking: партиция обрабатывается строго последовательно, отравленное сообщение с длинными ретраями тормозит всех соседей по партиции.',
+  probe:['Что случится с лагом, если ретраев сделать 50 вместо 5?','Как бы ты воспроизвёл это на стенде?']},
+
+ {id:'m2', type:'choice', pts:4,
+  q:'Разработчик говорит: «перезапустим billing-consumer, он перечитает и всё создастся». Прав?',
+  opts:['Прав: после рестарта консьюмер читает партицию с начала','Не прав: offset уже закоммичен, а сообщения лежат в отдельном топике DLQ — их нужно осознанно переигрывать, и до этого счета не появятся','Прав, но только если включён auto.offset.reset=earliest','Не прав: Kafka уже удалила сообщения после ухода в DLQ'],
+  ans:1, model:'Рестарт продолжит с закоммиченного offset. Разбор DLQ — отдельная процедура: починить причину, затем переиграть сообщения (и проверить, что повторная обработка не создаст дублей счетов).',
+  probe:['В каком порядке чинить: данные, код, переигрывание DLQ?','Что проверишь, чтобы переигрывание не создало два счёта на один заказ?']},
+
+ {id:'m3', type:'choice', pts:4,
+  q:'Чем разбор был бы другим, будь у нас RabbitMQ вместо Kafka?',
+  opts:['В RabbitMQ такого не бывает — он гарантирует exactly-once','Сообщение живёт в очереди до ack и после ack исчезает: «перечитать по offset» нельзя, нужен requeue или dead-letter exchange; в Kafka же сообщение лежит до retention и переигрывается по offset','RabbitMQ не умеет dead-letter, пришлось бы писать свою таблицу','Разницы нет, это одно и то же с разным синтаксисом'],
+  ans:1, model:'Kafka — лог с offset и retention, читатели независимы и могут перечитывать. RabbitMQ — очередь с ack/nack, requeue и DLX; после ack сообщения нет.',
+  probe:['Где в нашей схеме важен порядок сообщений, а где нет?','Что такое at-least-once и почему из-за него нужна идемпотентность потребителя?']},
+
+ {id:'m4', type:'multi', pts:4,
+  q:'Фикс выкатили и переиграли DLQ. Что проверишь именно по очередям?',
+  opts:['Лаг по всем партициям вернулся к нулю и не растёт','DLQ не пополняется новыми сообщениями','Повторная обработка не создала второй счёт на тот же заказ','Сообщения из DLQ обработались и по всем 6 заказам появились счета','Количество партиций увеличилось','Продюсер стал отправлять сообщения синхронно'],
+  ans:[0,1,2,3], model:'Первые четыре. Дубли счетов — главный риск переигрывания, про него забывают чаще всего.',
+  probe:['Как проверишь «нет дублей» — глазами или запросом?']},
+
+ {id:'m5', type:'free', pts:0, rows:2,
+  q:'Как ты воспроизведёшь этот баг на тестовом стенде, чтобы убедиться, что фикс работает?',
+  model:'Ждём: завести компанию без vat_rate, провести рейс до подписи, увидеть счёт (а не DLQ). Плюс отдельная проверка: старые сообщения из DLQ переигрываются без дублей.',
+  probe:['Тебе для этого нужен разработчик или справишься сам?']}
+],
+
+proxy: [
+ {id:'p1', type:'multi', pts:4,
+  q:'Нужно подменить ответ бэкенда для мобильного приложения на реальном телефоне. Чем это делается?',
+  opts:['Charles / Proxyman / Fiddler как HTTPS-прокси с установкой корневого сертификата на устройство','mitmproxy с тем же сертификатом','DevTools → Local Overrides','Подменить DNS/hosts на локальный мок-сервер','Попросить разработчика собрать дебажный билд с указанием на мок-стенд'],
+  ans:[0,1,3,4], model:'Всё, кроме Local Overrides: это инструмент браузера и на нативное приложение не действует.',
+  probe:['Что именно делает установка корневого сертификата и почему без неё HTTPS не читается?']},
+
+ {id:'p2', type:'choice', pts:4,
+  q:'Приложение с certificate pinning перестало работать через прокси. Что это значит?',
+  opts:['Прокси настроен неверно, нужно переустановить сертификат','Приложение сверяет сертификат/публичный ключ сервера с зашитым эталоном, и подменённый CA его не устраивает — нужен билд с отключённым пиннингом или другой способ отладки','На устройстве закончилось место под сертификаты','Pinning ломает только HTTP, надо перейти на HTTPS'],
+  ans:1, model:'Пиннинг — защита от MITM. Обход — дебажный билд/флаг, а не «сломать защиту».',
+  probe:['Это баг приложения или ожидаемое поведение? Что напишешь в отчёте?']},
+
+ {id:'p3', type:'free', pts:0, rows:3,
+  q:'Когда подмена ответа — правильный инструмент, а когда она обманывает тебя саму?',
+  model:'Правильно: проверить фронт на состояниях, которые сложно воспроизвести (пустой список, 500, таймаут, длинные поля, редкие статусы). Самообман: «проверил на моке» вместо интеграции — мок не докажет, что бэкенд отдаёт именно такое поле и именно такой формат.',
+  probe:['Если фронт на моке работает, а на интеграции нет — где ты проверишь контракт?']}
+],
+
+cases: [
+ {id:'c1', type:'cases', pts:0,
+  q:'Напиши тест-кейсы на фикс: billing-consumer не падает на пустом vat_rate, а POST /sign принимает Idempotency-Key.',
+  sub:'Минимум 5 кейсов. Важнее не количество, а покрытие рисков: негативные, граничные, регресс смежного, проверка данных после фикса.',
+  model:'Ждём среди прочего: 1) компания без vat_rate → счёт не создаётся, но и падения/DLQ нет, есть внятная ошибка; 2) vat_rate заполнили → счёт создаётся, статус заказа меняется; 3) повторная подпись с тем же Idempotency-Key → 200 и ровно один документ; 4) повторная подпись без ключа → 409, документов не прибавилось; 5) переигрывание DLQ → ровно один счёт на заказ; 6) регресс: обычная компания со ставкой 20 подписывается как раньше; 7) 6 застрявших заказов после фикса разъехались.',
+  probe:['Какой кейс ты выполнишь первым, если есть 10 минут?','Где предусловия и тестовые данные? На чьём стенде?','Что из этого пойдёт в регресс навсегда, а что одноразовое?']},
+
+ {id:'c2', type:'multi', pts:4,
+  q:'Поле vatRate. Какие значения обязательно проверить?',
+  opts:['null и отсутствие поля','0','20 (обычное значение)','Отрицательное и текст вместо числа','Очень длинное число / дробное 20.00','Значение ровно 100'],
+  ans:[0,1,2,3], model:'Как минимум null/отсутствие, 0 (важно: 0 ≠ NULL, но код часто путает), нормальное значение и мусор. Дробные и 100 — приятный бонус, не обязательный.',
+  probe:['Чем NULL отличается от 0 для кода, который считает счёт?']},
+
+ {id:'c3', type:'choice', pts:3,
+  q:'Хотфикс уходит на прод через 40 минут. Что проверяешь первым?',
+  opts:['Полный регресс модуля счетов','Сквозной сценарий «подпись → счёт → статус в ЛК» на компании без vat_rate и на обычной компании','Вёрстку ЛК на мобильном','Нагрузочный тест billing-consumer'],
+  ans:1, model:'Сначала сквозной путь на тех данных, ради которых чинили, и рядом — обычный сценарий, чтобы не сломали работающее.',
+  probe:['Что скажешь, если после проверки остались сомнения, а релиз уже уезжает?']},
+
+ {id:'c4', type:'free', pts:0, rows:2,
+  q:'Какие из этих кейсов ты бы автоматизировал и на каком уровне (unit / API / UI)?',
+  model:'Ждём: проверки идемпотентности и счёта — на уровне API, обработка NULL — unit/контрактный тест в сервисе, UI — только один сквозной сценарий. Красный флаг: «всё через UI».',
+  probe:['Почему не UI-тестами всё?']}
+],
+
+git: [
+ {id:'g1', type:'choice', pts:3,
+  q:'Фикс уже в develop (коммит 8f21ac0). Его нужно срочно в release/1.12, не тащя остальной develop. Что делаешь?',
+  opts:['git merge develop в release/1.12','git cherry-pick 8f21ac0 в release/1.12, потом тег и деплой','git rebase release/1.12 на develop','git reset --hard 8f21ac0 в release/1.12'],
+  ans:1, model:'cherry-pick одного коммита. Merge притащит BILL-898 и всё остальное из develop, чего в релизе быть не должно.',
+  probe:['Что потом сделать, чтобы фикс не потерялся при следующем мердже release в main/develop?']},
+
+ {id:'g2', type:'choice', pts:3,
+  q:'Смотрим на граф. Где сейчас живёт функциональность из feature/idempotent-sign?',
+  opts:['В main и в release/1.12','Только в develop: ветка влита мерж-коммитом e5512cd, в release/1.12 её нет','В release/1.12, оттуда попадёт в develop','Нигде: ветка не влита'],
+  ans:1, model:'Только в develop. Значит, на проде (тег v1.12.3 на release/1.12) идемпотентности подписи нет — что и объясняет три документа.',
+  probe:['То есть три дубля документов — это баг прода или ожидаемое поведение текущей версии?']},
+
+ {id:'g3', type:'choice', pts:3,
+  q:'В общую ветку release/1.12 случайно ушёл лишний коммит, его уже спулили двое. Как убираешь?',
+  opts:['git reset --hard и push --force','git revert коммита новым коммитом','Удалить ветку и создать заново','git rebase -i и push --force-with-lease'],
+  ans:1, model:'revert. Переписывать историю в общей ветке — ломать работу всем, кто уже спулил.',
+  probe:['А если бы ветку никто не забирал — что изменилось бы?']},
+
+ {id:'g4', type:'choice', pts:3,
+  q:'Дубли документов появились где-то между v1.11 и v1.12.3, точный коммит неизвестен. Чем ищешь?',
+  opts:['git log --grep','git bisect','git blame по файлу','git diff двух тегов'],
+  ans:1, model:'bisect — бинарный поиск по истории с воспроизведением бага на каждом шаге. blame и diff помогают, когда уже примерно знаешь файл.',
+  probe:['Что нужно подготовить, чтобы bisect был быстрым?']},
+
+ {id:'g5', type:'free', pts:0, rows:2,
+  q:'Тебе нужен стенд с фиксом поверх релизной ветки. Напиши команды, которыми соберёшь такую ветку.',
+  model:'Ждём примерно: git fetch, git checkout -b qa/INC-4471 origin/release/1.12, git cherry-pick 8f21ac0, разрешить конфликт, push. Важнее точности команд — понимание, от чего ответвляться.',
+  probe:['Что сделаешь, если cherry-pick упал с конфликтом?']}
+],
+
+est: [
+ {id:'e1', type:'num', pts:4,
+  q:'Итоговая оценка E по трём подзадачам (PERT), часы:', ans:19.5, tol:0.7, ph:'19.5',
+  model:'E = 4.33 + 5.83 + 9.33 = 19.5 ч. Оценки складываются напрямую.',
+  probe:['Что в этих 19,5 часах — твоё время, а что ожидание чужого?']},
+
+ {id:'e2', type:'num', pts:5,
+  q:'Оценка с запасом «уложусь почти наверняка» (E + 2σ), часы:', ans:25.9, tol:1.5, ph:'25.9',
+  model:'σ по подзадачам 1.0 / 1.5 / 2.67. Складываются не сигмы, а дисперсии: σ = √(1 + 2.25 + 7.11) ≈ 3.2. E + 2σ ≈ 25.9 ч. Типичная ошибка — сложить сигмы (5.17) и получить ~29.8.',
+  probe:['Почему сигмы нельзя складывать напрямую?']},
+
+ {id:'e3', type:'choice', pts:4,
+  q:'Почему нельзя назвать ПМ сумму пессимистичных оценок (8 + 12 + 20 = 40 ч)?',
+  opts:['Можно, это честный худший случай','Потому что вероятность, что все три риска выстрелят одновременно, крайне мала — суммируются дисперсии, а не худшие случаи; 40 ч обесценит твои оценки в глазах команды','Потому что ПМ всё равно поделит на два','Потому что пессимистичную оценку считают только для разработки'],
+  ans:1, model:'Сумма максимумов — не оценка, а страховка от всего сразу. Правильно — E плюс явно названный буфер.',
+  probe:['Как ты назовёшь одну цифру, если ПМ отказывается слушать про диапазон?']},
+
+ {id:'e4', type:'choice', pts:3,
+  q:'Планируем спринт: на фичу заложено 40 часов разработки. Сколько закладываешь на тестирование?',
+  opts:['10–15% — тестирование быстрее разработки','25–35%, и это оценка только для планирования спринта: на конкретной задаче считаем по составу работ','50% — правило «половина от разработки»','Нисколько: тестирование внутри оценки разработки'],
+  ans:1, model:'Процент — нормальный инструмент планирования на входе (обычно 25–35%), но он не заменяет разбор задачи. Ключевое в ответе — оговорка про область применимости.',
+  probe:['Когда процент врёт сильнее всего? (интеграции, миграции, чужой легаси)']},
+
+ {id:'e5', type:'free', pts:0, rows:2,
+  q:'ПМ хочет одну цифру. Что скажешь и что попросишь взамен?',
+  model:'Ждём: одна цифра называется, но с явной границей («19–20 ч при условии, что стенд с данными есть к утру; если нет — плюс день ожидания»), плюс просьба зафиксировать допущения.',
+  probe:['Что делаешь, когда оценка поехала на середине задачи?']},
+
+ {id:'e6', type:'free', pts:0, rows:2,
+  q:'Когда «пальцем в небо» — законный метод, а когда — халтура?',
+  model:'Ждём: экспертная оценка законна для грубого сравнения вариантов и когда цена ошибки мала; халтура — когда по ней берут обязательства перед клиентом или считают сроки релиза.',
+  probe:['Как ты повышаешь точность экспертной оценки? (аналогии, декомпозиция, чужой опыт)']}
+],
+
+ai: [
+ {id:'ai1', type:'free', pts:0, rows:4,
+  q:'Скопируй сюда промпт (или промпты), которыми ты сегодня пользовался. Если не пользовался — напиши, на каком шаге ИИ был бы полезнее всего.',
+  model:'Хороший промпт: есть контекст системы, приложены данные (лог/схема), задан конкретный вопрос, оговорён формат ответа. Плохой: «почему не работает счёт».',
+  probe:['Что ты дал модели из контекста, а что сознательно не дал?','Как проверял ответ?']},
+
+ {id:'ai2', type:'multi', pts:4,
+  q:'Что нельзя отправлять в публичный чат-бот с рабочей машины?',
+  opts:['Боевые токены и пароли из конфигов','Логи с персональными данными клиентов и ИНН реальных компаний','Выгрузку боевой БД','Обезличенную схему таблиц без данных','Текст ошибки из своего локального стенда'],
+  ans:[0,1,2], model:'Секреты, ПДн и боевые данные — нет. Схема без данных и локальные ошибки — обычно можно, но правило берётся из политики компании, а не из головы.',
+  probe:['Где в компании написано, что можно отдавать, а что нет? Спрашивал?']},
+
+ {id:'ai3', type:'free', pts:0, rows:3,
+  q:'Где сегодня ИИ реально сэкономил время, а где увёл бы не туда, если бы ты не проверил?',
+  model:'Сильный ответ называет конкретный момент: «сгенерил SQL, но он не учитывал NULL» / «предложил 502 как причину — отмёл по trace_id». Слабый: «ИИ помог во всём» или «я им не пользуюсь».',
+  probe:['Как ты вообще решаешь, доверять ли ответу модели?']}
+],
+
+done: [
+ {id:'z1', type:'free', pts:0, rows:3,
+  q:'Что в этом задании показалось сомнительным или спроектированным неправильно? Что бы ты спросил у команды в первый день?',
+  model:'Ждём здоровой критики: почему статус заказа зависит от счёта, почему vat_rate вообще может быть NULL при активной компании, почему ретраи клиента не ограничены, где мониторинг DLQ и почему про инцидент узнали от клиента, а не от алерта.',
+  probe:['Что бы ты добавил в мониторинг, чтобы такой инцидент находили без клиента?']}
+]
+};
+
+const AI_STATEMENTS = [
+ {t:'Судя по логам, корень — 502 от tariff-service: запрос на подпись просто не дошёл до doc-service.', bad:true},
+ {t:'Достаточно перезапустить billing-consumer — он сам перечитает сообщения из DLQ и создаст недостающие счета.', bad:true},
+ {t:'Дубликаты документов ETRN-4471-01 появились из-за повторных запросов клиента без ключа идемпотентности.', bad:false},
+ {t:'Kafka не гарантирует порядок сообщений, поэтому счёт мог быть создан раньше подписи.', bad:true},
+ {t:'Корневая причина — vat_rate = NULL у компании 1: billing-consumer не может собрать счёт и после пяти попыток уводит сообщение в DLQ.', bad:false},
+ {t:'Чтобы починить быстро, выполните на проде UPDATE companies SET vat_rate = 20 WHERE id = 1 — это безопасно и обратимо.', bad:true}
+];
+const AI_MODEL = 'Неверные: 1 (другой trace_id и другое время — ложный след), 2 (offset закоммичен, DLQ — отдельный топик), 4 (в пределах партиции порядок гарантирован), 6 (UPDATE на проде мимо владельца данных и без миграции — и «обратимо» здесь неправда). Верные: 3 и 5.';
+
+const EST_ROWS = [
+  {name:'Тест-дизайн и кейсы', o:2, m:4, p:8},
+  {name:'Проверка на стенде (вкл. переигрывание DLQ)', o:3, m:5, p:12},
+  {name:'Регресс смежных потоков', o:4, m:8, p:20}
+];
+
+/* ============================================================
+   ДВИЖОК: состояние, рендер заданий, проверка, счёт
+   ============================================================ */
+const $ = function(s, r){ return (r||document).querySelector(s); };
+const $$ = function(s, r){ return Array.prototype.slice.call((r||document).querySelectorAll(s)); };
+const esc = function(s){ return String(s===null||s===undefined?'':s).replace(/[&<>"]/g, function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); };
+
+const SECTIONS = [
+  {id:'brief', n:'00', t:'Вводная'},
+  {id:'http',  n:'01', t:'HTTP'},
+  {id:'sql',   n:'02', t:'SQL'},
+  {id:'api',   n:'03', t:'API'},
+  {id:'logs',  n:'04', t:'Логи'},
+  {id:'mq',    n:'05', t:'Очереди'},
+  {id:'proxy', n:'06', t:'Подмена трафика'},
+  {id:'cases', n:'07', t:'Тест-дизайн'},
+  {id:'git',   n:'08', t:'Git'},
+  {id:'est',   n:'09', t:'Оценка'},
+  {id:'ai',    n:'10', t:'Работа с ИИ'},
+  {id:'done',  n:'11', t:'Итог'}
+];
+
+const KEY = 'trakt-qa-stand-v1';
+let S = {answers:{}, earned:{}, journal:[], cases:[], est:{}, ai:[], mock:'', timer:{left:45*60, on:false}};
+try { const raw = localStorage.getItem(KEY); if(raw) S = Object.assign(S, JSON.parse(raw)); } catch(e){}
+let saveT = null;
+function save(){
+  if(saveT) clearTimeout(saveT);
+  saveT = setTimeout(function(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){} }, 250);
+}
+
+function maxPts(block){ return (TASKS[block]||[]).reduce(function(a,t){return a+(t.pts||0);},0) + (block==='ai'?8:0) + (block==='proxy'?6:0); }
+function earnedPts(block){
+  return (TASKS[block]||[]).reduce(function(a,t){return a + (S.earned[t.id]||0);},0)
+    + (block==='ai'?(S.earned.aiStmts||0):0) + (block==='proxy'?(S.earned.mock||0):0);
+}
+function updateScore(){
+  let tot=0, max=0;
+  Object.keys(TASKS).forEach(function(b){ tot+=earnedPts(b); max+=maxPts(b); });
+  $('#scoreNow').textContent = tot; $('#scoreMax').textContent = max;
+  $('#scoreBar').style.width = (max? Math.round(tot/max*100):0)+'%';
+  $$('[data-pts]').forEach(function(el){
+    const b = el.getAttribute('data-pts');
+    if(maxPts(b)>0) el.textContent = earnedPts(b)+' / '+maxPts(b)+' б';
+  });
+  $$('#rail a').forEach(function(a){
+    const b = a.getAttribute('data-sec'); const dot = $('.dot', a); if(!dot) return;
+    const answered = (TASKS[b]||[]).filter(function(t){ return hasAnswer(t.id); }).length;
+    const total = (TASKS[b]||[]).length;
+    dot.className = 'dot' + (total && answered>=total ? ' done' : (answered? ' part':''));
+  });
+  const grid = $('#scoreGrid');
+  if(grid){
+    grid.innerHTML = SECTIONS.filter(function(s){return maxPts(s.id)>0;}).map(function(s){
+      return '<div class="score-card"><div class="sl">'+s.n+' · '+esc(s.t)+'</div><div class="sv">'+earnedPts(s.id)+' <span style="color:var(--ink-3);font-size:14px">/ '+maxPts(s.id)+'</span></div></div>';
+    }).join('') + '<div class="score-card" style="border-color:var(--accent)"><div class="sl">Всего авто</div><div class="sv">'+tot+' <span style="color:var(--ink-3);font-size:14px">/ '+max+'</span></div></div>';
+  }
+}
+function hasAnswer(id){
+  const v = S.answers[id];
+  if(v===undefined||v===null) return false;
+  if(Array.isArray(v)) return v.length>0;
+  return String(v).trim().length>0;
+}
+
+/* ---------- рендер заданий ---------- */
+function reviewHtml(t){
+  if(!t.model && !t.probe) return '';
+  return '<div class="review"><div class="rh">Эталон и добивка</div>'+
+    (t.model? '<div>'+esc(t.model)+'</div>':'')+
+    (t.probe? '<ul>'+t.probe.map(function(p){return '<li>'+esc(p)+'</li>';}).join('')+'</ul>':'')+
+    '</div>';
+}
+function taskShell(t, i, inner){
+  return '<div class="task" id="task-'+t.id+'" data-task="'+t.id+'">'+
+    '<div class="task-h"><span class="tn">'+t.id.toUpperCase()+'</span>'+
+      '<div class="task-q">'+esc(t.q)+ (t.sub? '<span class="q-sub">'+esc(t.sub)+'</span>':'') +'</div>'+
+      (t.pts? '<span class="chip pts" style="margin-left:auto">'+t.pts+' б</span>':'<span class="chip" style="margin-left:auto">устно</span>')+
+    '</div>'+ inner +
+    '<div class="verdict idle" data-v="'+t.id+'" hidden></div>'+
+    reviewHtml(t)+'</div>';
+}
+function renderTasks(){
+  Object.keys(TASKS).forEach(function(block){
+    const host = $('.tasks[data-block="'+block+'"]');
+    if(!host) return;
+    host.innerHTML = TASKS[block].map(function(t, i){
+      let inner = '';
+      const a = S.answers[t.id];
+      if(t.type==='choice' || t.type==='multi'){
+        const type = t.type==='choice' ? 'radio':'checkbox';
+        inner = '<div class="opts">' + t.opts.map(function(o, oi){
+          const on = t.type==='choice' ? (a===oi) : (Array.isArray(a) && a.indexOf(oi)>=0);
+          return '<label class="opt" data-opt="'+oi+'"><input type="'+type+'" name="'+t.id+'" value="'+oi+'"'+(on?' checked':'')+'><span>'+esc(o)+'</span><span class="mark"></span></label>';
+        }).join('') + '</div>';
+      } else if(t.type==='short'){
+        inner = '<div class="inline-in"><input type="text" class="mono" data-in="'+t.id+'" value="'+esc(a||'')+'" placeholder="'+esc(t.ph||'ответ')+'" spellcheck="false"></div>';
+      } else if(t.type==='num'){
+        inner = '<div class="inline-in"><input type="text" class="mono" inputmode="decimal" data-in="'+t.id+'" value="'+esc(a||'')+'" placeholder="'+esc(t.ph||'число')+'" spellcheck="false"></div>';
+      } else if(t.type==='free'){
+        inner = '<textarea data-in="'+t.id+'" rows="'+(t.rows||3)+'" placeholder="свободный ответ — его читает интервьюер">'+esc(a||'')+'</textarea>';
+      } else if(t.type==='journal'){
+        inner = '<div class="hintbox">Проверяется по журналу запросов: '+esc(t.needText)+'.</div>';
+      } else if(t.type==='sql'){
+        inner = '<div class="sql-ed">'+
+          '<textarea class="mono" data-in="'+t.id+'" rows="6" spellcheck="false">'+esc(a || t.seed || '')+'</textarea>'+
+          '<div class="task-foot"><button class="btn btn-primary btn-sm" data-sql="'+t.id+'">Выполнить</button>'+
+          '<span class="res-meta" data-sqlmeta="'+t.id+'"></span></div>'+
+          '<div data-sqlres="'+t.id+'"></div></div>';
+      } else if(t.type==='cases'){
+        inner = '<div class="case-head"><span></span><span>Шаг / действие</span><span class="exp">Ожидаемый результат</span><span></span></div>'+
+          '<div class="cases" id="caseRows"></div>'+
+          '<div class="task-foot"><button class="btn btn-sm" id="caseAdd">+ Кейс</button>'+
+          '<span class="res-meta" id="caseCount"></span></div>';
+      }
+      return taskShell(t, i, inner);
+    }).join('');
+  });
+}
+
+/* ---------- проверка ---------- */
+function normalize(s){ return String(s||'').trim().toLowerCase().replace(/\s+/g,' ').replace(/,/g,'.'); }
+function checkTask(t){
+  const a = S.answers[t.id];
+  if(t.type==='choice') return a===t.ans;
+  if(t.type==='multi'){
+    if(!Array.isArray(a)) return false;
+    const x = a.slice().sort().join(','), y = t.ans.slice().sort().join(',');
+    return x===y;
+  }
+  if(t.type==='short'){
+    const v = normalize(a); if(!v) return false;
+    return t.accept.some(function(p){ return p instanceof RegExp ? p.test(v) : normalize(p)===v; });
+  }
+  if(t.type==='num'){
+    const v = parseFloat(normalize(a)); if(isNaN(v)) return false;
+    return Math.abs(v - t.ans) <= (t.tol||0);
+  }
+  if(t.type==='journal') return !!t.need(S.journal);
+  return null;
+}
+function paintVerdict(t, ok){
+  const v = $('[data-v="'+t.id+'"]');
+  if(!v) return;
+  v.hidden = false;
+  if(ok===null){ v.className='verdict idle'; v.innerHTML='<b>Ответ записан.</b> Оценивается голосом.'; return; }
+  v.className = 'verdict ' + (ok?'ok':'err');
+  v.innerHTML = ok ? '<b>Верно.</b> +'+t.pts+' б' : '<b>Не то.</b> Разберём голосом — ответ сохранён.';
+  if(t.type==='choice' || t.type==='multi'){
+    $$('#task-'+t.id+' .opt').forEach(function(el){
+      const oi = +el.getAttribute('data-opt');
+      const right = t.type==='choice' ? (oi===t.ans) : (t.ans.indexOf(oi)>=0);
+      const picked = t.type==='choice' ? (S.answers[t.id]===oi) : (Array.isArray(S.answers[t.id]) && S.answers[t.id].indexOf(oi)>=0);
+      el.classList.remove('right','wrong');
+      if(document.body.classList.contains('review-on') || picked){
+        if(right) el.classList.add('right');
+        else if(picked) el.classList.add('wrong');
+      }
+      $('.mark', el).textContent = picked ? (right?'✓':'✕') : '';
+    });
+  }
+}
+function checkBlock(block){
+  (TASKS[block]||[]).forEach(function(t){
+    if(t.type==='sql' || t.type==='cases' || t.type==='free'){ if(t.type==='free') paintVerdict(t, null); return; }
+    const ok = checkTask(t);
+    S.earned[t.id] = ok ? (t.pts||0) : 0;
+    paintVerdict(t, ok);
+  });
+  save(); updateScore();
+}
+
+/* ---------- ввод ---------- */
+document.addEventListener('change', function(e){
+  const el = e.target;
+  if(el.type==='radio' && el.name && TASKS_INDEX[el.name]){ S.answers[el.name] = +el.value; save(); updateScore(); }
+  if(el.type==='checkbox' && el.name && TASKS_INDEX[el.name]){
+    const arr = $$('input[name="'+el.name+'"]:checked').map(function(i){return +i.value;});
+    S.answers[el.name] = arr; save(); updateScore();
+  }
+});
+document.addEventListener('input', function(e){
+  const id = e.target.getAttribute && e.target.getAttribute('data-in');
+  if(id){ S.answers[id] = e.target.value; save(); updateScore(); }
+});
+const TASKS_INDEX = {};
+Object.keys(TASKS).forEach(function(b){ TASKS[b].forEach(function(t){ t._block = b; TASKS_INDEX[t.id] = t; }); });
+
+/* ---------- рельса и навигация ---------- */
+function buildRail(){
+  const rail = $('#rail');
+  rail.innerHTML = '<div class="rail-h">Разделы</div>' + SECTIONS.map(function(s){
+    return '<a href="#'+s.id+'" data-sec="'+s.id+'"><span class="n">'+s.n+'</span><span>'+esc(s.t)+'</span><span class="dot"></span></a>';
+  }).join('');
+}
+function spyInit(){
+  const links = {}; $$('#rail a').forEach(function(a){ links[a.getAttribute('data-sec')] = a; });
+  const io = new IntersectionObserver(function(entries){
+    entries.forEach(function(en){
+      if(en.isIntersecting){
+        $$('#rail a').forEach(function(a){a.classList.remove('on');});
+        if(links[en.target.id]) links[en.target.id].classList.add('on');
+      }
+    });
+  }, {rootMargin:'-80px 0px -70% 0px'});
+  SECTIONS.forEach(function(s){ const el = document.getElementById(s.id); if(el) io.observe(el); });
+}
+
+/* ---------- таймер ---------- */
+function fmt(sec){
+  sec = Math.max(0, sec);
+  const m = Math.floor(sec/60), s = sec%60;
+  return (m<10?'0':'')+m+':'+(s<10?'0':'')+s;
+}
+function tickTimer(){
+  if(!S.timer.on) return;
+  S.timer.left = Math.max(0, S.timer.left-1);
+  paintTimer();
+  if(S.timer.left===0){ S.timer.on=false; $('#timerBtn').textContent='Старт'; }
+  save();
+}
+function paintTimer(){
+  const el = $('#timer');
+  el.textContent = fmt(S.timer.left);
+  el.classList.toggle('low', S.timer.left <= 300);
+}
+setInterval(tickTimer, 1000);
+
+/* ---------- режим интервьюера ---------- */
+function setReview(on){
+  document.body.classList.toggle('review-on', on);
+  $('#reviewBtn').textContent = on ? 'Скрыть эталоны' : 'Режим интервьюера';
+  if(on) location.hash = location.hash || '';
+}
+
+/* ---------- отчёт ---------- */
+function buildReport(){
+  const L = [];
+  L.push('# Тестовое задание QA — стенд «Тракт», инцидент INC-4471');
+  L.push('');
+  L.push('Дата разбора: ' + new Date().toLocaleString('ru-RU'));
+  let tot=0, max=0; Object.keys(TASKS).forEach(function(b){tot+=earnedPts(b);max+=maxPts(b);});
+  L.push('Автобаллы: **' + tot + ' / ' + max + '**');
+  L.push('');
+  SECTIONS.forEach(function(s){
+    const list = TASKS[s.id]; if(!list) return;
+    L.push('## ' + s.n + ' ' + s.t + '  (' + earnedPts(s.id) + '/' + maxPts(s.id) + ')');
+    if(s.id==='ai' && S.answers.aiStmts){
+      L.push('- **Разбор ответа ИИ**: отмечены утверждения ' + (S.answers.aiStmts.map(function(i){return i+1;}).join(', ')||'—') +
+             ' · ' + (S.earned.aiStmts||0) + '/8 б');
+    }
+    if(s.id==='proxy'){
+      L.push('- **Подмена ответа**: ' + (S.earned.mock ? 'собрана верно' : 'не собрана / собрана неверно') + ' · ' + (S.earned.mock||0) + '/6 б');
+      if(S.mock) L.push('```json\n' + S.mock + '\n```');
+    }
+    list.forEach(function(t){
+      const a = S.answers[t.id];
+      let shown = '—';
+      if(t.type==='choice') shown = (a===undefined||a===null)?'—':('('+(checkTask(t)?'верно':'неверно')+') '+t.opts[a]);
+      else if(t.type==='multi') shown = Array.isArray(a)&&a.length ? ('('+(checkTask(t)?'верно':'неверно')+') '+a.map(function(i){return t.opts[i];}).join(' | ')) : '—';
+      else if(t.type==='journal') shown = (t.need(S.journal)?'выполнено':'не выполнено');
+      else if(t.type==='cases') shown = '\n' + (S.cases||[]).filter(function(c){return (c[0]||c[1]);}).map(function(c,i){
+          return (i+1)+'. ' + (c[0]||'') + ' → ' + (c[1]||''); }).join('\n');
+      else shown = (a===undefined||a==='')?'—':('\n```\n'+a+'\n```');
+      L.push('- **' + t.id.toUpperCase() + '. ' + t.q + '**');
+      L.push('  ' + String(shown).replace(/\n/g,'\n  '));
+    });
+    L.push('');
+  });
+  L.push('## Журнал API-запросов (' + S.journal.length + ')');
+  S.journal.forEach(function(r){ L.push('- `' + r.status + ' ' + r.method + ' ' + r.path + '`'); });
+  L.push('');
+  L.push('## Журнал SQL');
+  Object.keys(S.answers).filter(function(k){return TASKS_INDEX[k] && TASKS_INDEX[k].type==='sql';}).forEach(function(k){
+    L.push('### ' + k.toUpperCase() + (S.earned[k]?' — зачтено':' — не зачтено'));
+    L.push('```sql\n' + (S.answers[k]||'') + '\n```');
+  });
+  return L.join('\n');
+}
+function openReport(){
+  const text = buildReport();
+  const wrap = document.createElement('div');
+  wrap.className = 'modal';
+  wrap.innerHTML = '<div class="modal-in"><div class="modal-h"><h3>Отчёт для разбора</h3>'+
+    '<button class="btn btn-sm btn-primary" id="mCopy">Скопировать</button>'+
+    '<button class="btn btn-sm" id="mClose">Закрыть</button></div>'+
+    '<div class="modal-b"><textarea id="mText" spellcheck="false"></textarea></div></div>';
+  document.body.appendChild(wrap);
+  $('#mText', wrap).value = text;
+  $('#mClose', wrap).onclick = function(){ wrap.remove(); };
+  wrap.onclick = function(e){ if(e.target===wrap) wrap.remove(); };
+  $('#mCopy', wrap).onclick = function(){
+    const ta = $('#mText', wrap); ta.select();
+    let ok = false;
+    try { ok = document.execCommand('copy'); } catch(e){}
+    if(navigator.clipboard) { navigator.clipboard.writeText(ta.value).then(function(){}, function(){}); }
+    $('#mCopy', wrap).textContent = ok ? 'Скопировано' : 'Выдели и скопируй';
+  };
+}
+
+/* ============================================================
+   БЛОКИ
+   ============================================================ */
+
+/* ---------- SQL ---------- */
+let SQL_OK = false;
+function initSql(){
+  if(typeof alasql === 'undefined') return false;
+  try{
+    alasql('CREATE TABLE IF NOT EXISTS companies (id INT, name STRING, inn STRING, vat_rate INT, created_at STRING)');
+    alasql('CREATE TABLE IF NOT EXISTS orders (id INT, company_id INT, created_at STRING, status STRING, amount INT)');
+    alasql('CREATE TABLE IF NOT EXISTS trips (id INT, order_id INT, driver STRING, started_at STRING, finished_at STRING, status STRING)');
+    alasql('CREATE TABLE IF NOT EXISTS documents (id INT, trip_id INT, external_id STRING, type STRING, status STRING, created_at STRING)');
+    alasql('CREATE TABLE IF NOT EXISTS invoices (id INT, order_id INT, amount INT, status STRING, created_at STRING)');
+    Object.keys(DB).forEach(function(t){
+      alasql.tables[t].data = DB[t].map(function(r){ return Object.assign({}, r); });
+    });
+    alasql('SELECT COUNT(*) AS n FROM orders');
+    return true;
+  } catch(e){ return false; }
+}
+function renderSchema(){
+  $('#schema').innerHTML = SCHEMA.map(function(s){
+    return '<div class="tbl-card"><h4>'+s.t+' <span style="color:var(--ink-3);font-weight:400">'+s.n+'</span></h4><ul>'+
+      s.cols.map(function(c){
+        const pk = /PK|FK/.test(c);
+        return '<li'+(pk?' class="pk"':'')+'>'+esc(c)+'</li>';
+      }).join('')+'</ul></div>';
+  }).join('');
+}
+function resultTable(rows){
+  if(!rows || !rows.length) return '<div class="hintbox">Пустой результат: 0 строк.</div>';
+  const cols = Object.keys(rows[0]);
+  const shown = rows.slice(0, 50);
+  return '<div class="tw"><table><thead><tr>'+cols.map(function(c){return '<th>'+esc(c)+'</th>';}).join('')+'</tr></thead><tbody>'+
+    shown.map(function(r){
+      return '<tr>'+cols.map(function(c){
+        const v = r[c];
+        return (v===null||v===undefined) ? '<td class="null">NULL</td>' : '<td>'+esc(v)+'</td>';
+      }).join('')+'</tr>';
+    }).join('')+'</tbody></table></div>'+
+    (rows.length>50?'<div class="res-meta">показаны первые 50 из '+rows.length+'</div>':'');
+}
+function sqlMatch(rows, t){
+  if(!rows || !rows.length) return false;
+  if(t.rows && rows.length !== t.rows) return false;
+  const cols = Object.keys(rows[0]);
+  return t.expect.some(function(exp){
+    if(exp.length !== rows.length) return false;
+    const want = exp.map(String).sort();
+    return cols.some(function(c){
+      const got = rows.map(function(r){ return r[c]===null||r[c]===undefined?'':String(r[c]); }).sort();
+      return got.every(function(v,i){ return v===want[i]; });
+    });
+  });
+}
+function runSql(id){
+  const t = TASKS_INDEX[id];
+  const q = (S.answers[id]||'').trim().replace(/;\s*$/,'');
+  const meta = $('[data-sqlmeta="'+id+'"]'), res = $('[data-sqlres="'+id+'"]');
+  if(!q){ meta.textContent = 'пустой запрос'; return; }
+  if(!SQL_OK){ meta.textContent = 'движок недоступен — запрос сохранён для разбора'; return; }
+  if(/\b(insert|update|delete|drop|alter|create|truncate)\b/i.test(q)){
+    meta.textContent = 'стенд на чтение: только SELECT'; return;
+  }
+  let rows;
+  try { rows = alasql(q); }
+  catch(e){
+    meta.textContent = '';
+    res.innerHTML = '<div class="verdict err"><b>Ошибка SQL:</b> '+esc(e.message||e)+'</div>';
+    return;
+  }
+  if(!Array.isArray(rows)) rows = [];
+  const ok = sqlMatch(rows, t);
+  S.earned[id] = ok ? t.pts : 0;
+  meta.textContent = 'строк: ' + rows.length;
+  res.innerHTML = resultTable(rows);
+  const v = $('[data-v="'+id+'"]'); v.hidden = false;
+  v.className = 'verdict ' + (ok?'ok':'err');
+  v.innerHTML = ok ? '<b>Сходится.</b> +'+t.pts+' б — результат совпал с ожидаемым'
+                   : '<b>Пока не то.</b> Ожидается '+t.rows+' строк(и) с другим набором значений. Запрос сохранён.';
+  save(); updateScore();
+}
+
+/* ---------- API ---------- */
+function hlJson(v, ind){
+  ind = ind || '';
+  if(v===null) return '<span class="jnull">null</span>';
+  if(typeof v==='number') return '<span class="jnum">'+v+'</span>';
+  if(typeof v==='boolean') return '<span class="jnum">'+v+'</span>';
+  if(typeof v==='string') return '<span class="jstr">"'+esc(v)+'"</span>';
+  const ni = ind + '  ';
+  if(Array.isArray(v)){
+    if(!v.length) return '[]';
+    return '[\n' + v.map(function(x){ return ni + hlJson(x, ni); }).join(',\n') + '\n' + ind + ']';
+  }
+  const keys = Object.keys(v);
+  if(!keys.length) return '{}';
+  return '{\n' + keys.map(function(k){
+    return ni + '<span class="jkey">"'+esc(k)+'"</span>: ' + hlJson(v[k], ni);
+  }).join(',\n') + '\n' + ind + '}';
+}
+const STATUS_TEXT = {200:'OK',201:'Created',202:'Accepted',204:'No Content',400:'Bad Request',401:'Unauthorized',
+  403:'Forbidden',404:'Not Found',405:'Method Not Allowed',409:'Conflict',422:'Unprocessable Entity',429:'Too Many Requests',500:'Internal Server Error'};
+function renderJournal(){
+  $('#apiJournal').innerHTML = S.journal.slice().reverse().slice(0,40).map(function(r){
+    return '<div data-j="'+r.method+' '+esc(r.path)+'"><span class="st s'+String(r.status)[0]+'">'+r.status+'</span><span>'+r.method+' '+esc(r.path)+'</span></div>';
+  }).join('') || '<div style="padding:8px 10px;color:var(--ink-3)">пока пусто</div>';
+}
+function sendApi(){
+  const method = $('#apiMethod').value, path = $('#apiPath').value.trim();
+  const r = apiCall(method, path, $('#apiHeaders').value, $('#apiBody').value);
+  const cls = 's' + String(r.status)[0];
+  const hdrs = Object.keys(r.headers).map(function(k){ return k+': '+r.headers[k]; }).join('\n');
+  $('#apiResp').innerHTML = '<div class="resp-status '+cls+'">'+r.status+' '+(STATUS_TEXT[r.status]||'')+
+      '<span style="color:var(--ink-3);font-weight:400;font-family:var(--sans);font-size:12px">'+esc(method+' '+path)+'</span></div>'+
+    '<div class="resp-body"><pre style="color:var(--ink-3);font-size:11.5px">'+esc(hdrs)+'</pre><pre style="margin-top:8px">'+
+      (r.body===null?'<span class="jnull">(пустое тело)</span>':hlJson(r.body))+'</pre></div>';
+  S.journal.push({method:method, path:path, status:r.status});
+  if(S.journal.length>200) S.journal = S.journal.slice(-200);
+  renderJournal(); save(); updateScore();
+}
+function renderDocs(){
+  $('#apiDocs').innerHTML = API_DOCS.map(function(d){
+    return '<div><b>'+d[0]+'</b> '+esc(d[1])+(d[2]?' <span style="color:var(--ink-3)">· '+esc(d[2])+'</span>':'')+'</div>';
+  }).join('') + '<div style="color:var(--ink-3);margin-top:4px">Токен: <b>Bearer qa-demo-token</b> в заголовке Authorization</div>';
+}
+
+/* ---------- ЛОГИ ---------- */
+const LOG_SVCS = ['gateway','doc-service','billing-consumer','order-api','tariff-service'];
+let logF = {q:'', svc:null, lvl:null};
+function renderLogChips(){
+  $('#logChips').innerHTML = LOG_SVCS.map(function(s){
+    return '<button class="fchip'+(logF.svc===s?' on':'')+'" data-svc="'+s+'">'+s+'</button>';
+  }).join(' ') + ' ' + ['ERROR','WARN','INFO','DEBUG'].map(function(l){
+    return '<button class="fchip'+(logF.lvl===l?' on':'')+'" data-lvl="'+l+'">'+l+'</button>';
+  }).join(' ');
+}
+function renderLogs(){
+  const q = logF.q.trim().toLowerCase();
+  const rows = LOGS.filter(function(r){
+    if(logF.svc && r.svc!==logF.svc) return false;
+    if(logF.lvl && r.lvl!==logF.lvl) return false;
+    if(q){ return (r.ts+' '+r.lvl+' '+r.svc+' '+r.msg).toLowerCase().indexOf(q) >= 0; }
+    return true;
+  });
+  $('#logMeta').textContent = 'строк: ' + rows.length + ' из ' + LOGS.length + ' · 16.09.2026';
+  $('#logView').innerHTML = rows.map(function(r){
+    let msg = esc(r.msg);
+    if(q){
+      const re = new RegExp('('+q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','ig');
+      msg = msg.replace(re, '<mark>$1</mark>');
+    }
+    return '<div class="logline"><span class="ts">'+r.ts+'</span><span class="lv '+r.lvl+'">'+r.lvl+'</span><span class="svc">'+r.svc+'</span><span class="msg">'+msg+'</span></div>';
+  }).join('') || '<div style="padding:10px;color:var(--ink-3)">ничего не найдено</div>';
+}
+
+/* ---------- ОЧЕРЕДИ ---------- */
+function renderParts(){
+  const maxLag = 25;
+  $('#parts').innerHTML = PARTITIONS.map(function(p){
+    const w = Math.max(3, Math.round(p.lag/maxLag*100));
+    return '<div class="part"><span>partition '+p.p+'</span>'+
+      '<span class="track"><i class="'+(p.lag>0?'hot':'')+'" style="width:'+(p.lag>0?w:100)+'%"></i></span>'+
+      '<span class="lag" style="color:'+(p.lag>0?'var(--err)':'var(--ok)')+'">lag '+p.lag+'</span></div>';
+  }).join('');
+}
+
+/* ---------- ПОДМЕНА ---------- */
+function realOrderJson(){
+  return JSON.stringify(apiCall('GET','/v1/orders/4471','Authorization: '+TOKEN,'').body, null, 2);
+}
+function renderLK(o){
+  const colors = {awaiting_sign:'var(--warn)', invoiced:'var(--info)', paid:'var(--ok)', draft:'var(--ink-3)', cancelled:'var(--err)'};
+  const money = function(n){ return (typeof n==='number' ? n.toLocaleString('ru-RU') : esc(n)) + ' ₽'; };
+  $('#lkCard').innerHTML =
+    '<div class="lk-h"><b>Заказ № '+esc(o.id)+'</b><span class="chip">Северторг</span></div>'+
+    '<div class="lk-row"><span>Статус</span><span class="lk-status" style="color:'+(colors[o.status]||'var(--ink)')+'">'+esc(o.statusTitle||o.status)+'</span></div>'+
+    '<div class="lk-row"><span>Сумма</span><span>'+money(o.amount)+'</span></div>'+
+    '<div class="lk-row"><span>Счёт</span><span>'+(o.invoiceId?('№ '+esc(o.invoiceId)):'<span style="color:var(--warn)">не выставлен</span>')+'</span></div>'+
+    '<div class="lk-row"><span>Документов по рейсу</span><span>'+esc(o.documentsCount)+'</span></div>'+
+    '<div class="lk-row"><span>Кнопка «Оплатить»</span><span>'+(o.invoiceId?'<span style="color:var(--ok)">активна</span>':'<span style="color:var(--ink-3)">заблокирована</span>')+'</span></div>';
+}
+function applyMock(){
+  const v = $('#mockJson').value;
+  S.mock = v;
+  const out = $('#mockVerdict');
+  let o;
+  try { o = JSON.parse(v); }
+  catch(e){
+    out.innerHTML = '<div class="verdict err"><b>JSON не парсится:</b> '+esc(e.message)+'</div>';
+    return;
+  }
+  renderLK(o);
+  const okStatus = o.status==='invoiced';
+  const okInv = o.invoiceId!==null && o.invoiceId!==undefined && o.invoiceId!=='';
+  const okAmount = Number(o.amount)===148500;
+  const ok = okStatus && okInv && okAmount;
+  S.earned.mock = ok ? 6 : 0;
+  out.innerHTML = '<div class="verdict '+(ok?'ok':'err')+'"><b>'+(ok?'Готово. +6 б':'Ещё не то.')+'</b> '+
+    (ok ? 'ЛК показывает выставленный счёт — это и есть ожидаемый результат после фикса.'
+        : ['status = invoiced '+(okStatus?'✓':'✕'), 'invoiceId не null '+(okInv?'✓':'✕'), 'amount = 148500 '+(okAmount?'✓':'✕')].join(' · '))+'</div>';
+  save(); updateScore();
+}
+
+/* ---------- ТЕСТ-КЕЙСЫ ---------- */
+function renderCases(){
+  const host = $('#caseRows'); if(!host) return;
+  if(!S.cases || !S.cases.length) S.cases = [['',''],['',''],['','']];
+  host.innerHTML = S.cases.map(function(c, i){
+    return '<div class="case-row"><span class="num">'+(i+1)+'</span>'+
+      '<textarea data-case="'+i+'" data-cc="0" rows="2" placeholder="предусловие и действие">'+esc(c[0])+'</textarea>'+
+      '<textarea class="exp" data-case="'+i+'" data-cc="1" rows="2" placeholder="ожидаемый результат">'+esc(c[1])+'</textarea>'+
+      '<button class="del" data-delcase="'+i+'" title="удалить">×</button></div>';
+  }).join('');
+  const filled = S.cases.filter(function(c){return (c[0]||'').trim() && (c[1]||'').trim();}).length;
+  $('#caseCount').textContent = 'заполнено кейсов: ' + filled + (filled<5 ? ' (ждём минимум 5)' : ' — достаточно');
+}
+
+/* ---------- ОЦЕНКА ---------- */
+function estVals(){
+  return EST_ROWS.map(function(r, i){
+    const saved = (S.est && S.est[i]) || {};
+    return {name:r.name, o:+(saved.o!==undefined?saved.o:r.o), m:+(saved.m!==undefined?saved.m:r.m), p:+(saved.p!==undefined?saved.p:r.p)};
+  });
+}
+function renderEst(reveal){
+  const rows = estVals();
+  let sumE = 0, sumVar = 0;
+  $('#estRows').innerHTML = rows.map(function(r, i){
+    const E = (r.o + 4*r.m + r.p)/6, sd = (r.p - r.o)/6;
+    sumE += E; sumVar += sd*sd;
+    return '<tr><td style="white-space:normal;font-family:var(--sans)">'+esc(r.name)+'</td>'+
+      ['o','m','p'].map(function(k){
+        return '<td><input type="text" inputmode="decimal" data-est="'+i+'" data-estk="'+k+'" value="'+r[k]+'"></td>';
+      }).join('')+
+      '<td class="calc">'+E.toFixed(2)+'</td><td class="calc">'+sd.toFixed(2)+'</td></tr>';
+  }).join('');
+  const show = reveal || document.body.classList.contains('review-on');
+  $('#estE').textContent = show ? sumE.toFixed(2) : '?';
+  $('#estS').textContent = show ? ('√Σσ² = ' + Math.sqrt(sumVar).toFixed(2)) : '?';
+}
+
+/* ---------- ИИ ---------- */
+function renderAi(){
+  const sel = S.answers.aiStmts || [];
+  $('#aiStmts').innerHTML = AI_STATEMENTS.map(function(s, i){
+    return '<div class="stmt'+(sel.indexOf(i)>=0?' sel':'')+'" data-stmt="'+i+'"><span class="sn">'+(i+1)+'</span><span>'+esc(s.t)+'</span></div>';
+  }).join('');
+}
+function checkAi(){
+  const sel = S.answers.aiStmts || [];
+  let hit = 0, miss = 0, wrong = 0;
+  AI_STATEMENTS.forEach(function(s, i){
+    const picked = sel.indexOf(i)>=0;
+    if(s.bad && picked) hit++;
+    if(s.bad && !picked) miss++;
+    if(!s.bad && picked) wrong++;
+  });
+  const pts = Math.max(0, Math.min(8, hit*2 - wrong*2));
+  S.earned.aiStmts = pts;
+  $$('#aiStmts .stmt').forEach(function(el){
+    const i = +el.getAttribute('data-stmt');
+    el.classList.remove('right','miss');
+    if(AI_STATEMENTS[i].bad) el.classList.add(sel.indexOf(i)>=0 ? 'right' : 'miss');
+    else if(sel.indexOf(i)>=0) el.classList.add('miss');
+  });
+  $('#aiVerdict').innerHTML = '<div class="verdict '+(pts>=6?'ok':'err')+'"><b>'+pts+' / 8 б.</b> '+
+    'Найдено неверных: '+hit+' из 4, пропущено: '+miss+', отмечено лишнего: '+wrong+'. '+
+    (document.body.classList.contains('review-on') ? esc(AI_MODEL) : 'Разбираем голосом.')+'</div>';
+  save(); updateScore();
+}
+
+/* ============================================================
+   ИНИЦИАЛИЗАЦИЯ И СОБЫТИЯ
+   ============================================================ */
+buildRail();
+renderTasks();
+renderSchema();
+renderDocs();
+renderJournal();
+renderLogChips();
+renderLogs();
+renderParts();
+renderCases();
+renderEst(false);
+renderAi();
+$('#gitLog').textContent = GIT_LOG;
+$('#mockJson').value = S.mock || realOrderJson();
+try { renderLK(JSON.parse($('#mockJson').value)); } catch(e){ renderLK(JSON.parse(realOrderJson())); }
+
+SQL_OK = initSql();
+if(!SQL_OK){
+  $('#sqlWarn').innerHTML = '<div class="verdict err"><b>SQL-движок не загрузился</b> (нет сети до CDN). '+
+    'Запросы всё равно сохраняются и попадут в отчёт — проверим их глазами.</div>';
+}
+
+Object.keys(TASKS_INDEX).forEach(function(id){
+  const t = TASKS_INDEX[id];
+  if(S.earned[id]!==undefined && t.type!=='free' && t.type!=='cases'){
+    if(t.type==='sql'){
+      const v = $('[data-v="'+id+'"]');
+      if(v && S.earned[id]){ v.hidden=false; v.className='verdict ok'; v.innerHTML='<b>Сходится.</b> +'+t.pts+' б (из прошлой сессии)'; }
+    } else paintVerdict(t, checkTask(t));
+  }
+});
+if(S.earned.aiStmts!==undefined) checkAi();
+if(S.mock) applyMock();
+
+paintTimer();
+if(/review/i.test(location.hash)) setReview(true);
+
+document.addEventListener('click', function(e){
+  const el = e.target.closest ? e.target.closest('[data-check],[data-sql],[data-svc],[data-lvl],[data-stmt],[data-delcase],[data-j]') : null;
+  if(!el) return;
+  if(el.hasAttribute('data-check')){
+    const b = el.getAttribute('data-check');
+    checkBlock(b);
+    if(b==='est') renderEst(true);
+  }
+  else if(el.hasAttribute('data-sql')) runSql(el.getAttribute('data-sql'));
+  else if(el.hasAttribute('data-svc')){
+    const s = el.getAttribute('data-svc'); logF.svc = (logF.svc===s?null:s); renderLogChips(); renderLogs();
+  }
+  else if(el.hasAttribute('data-lvl')){
+    const l = el.getAttribute('data-lvl'); logF.lvl = (logF.lvl===l?null:l); renderLogChips(); renderLogs();
+  }
+  else if(el.hasAttribute('data-stmt')){
+    const i = +el.getAttribute('data-stmt');
+    const sel = (S.answers.aiStmts || []).slice();
+    const at = sel.indexOf(i);
+    if(at>=0) sel.splice(at,1); else sel.push(i);
+    S.answers.aiStmts = sel; renderAi(); save();
+  }
+  else if(el.hasAttribute('data-delcase')){
+    const i = +el.getAttribute('data-delcase');
+    S.cases.splice(i,1); if(!S.cases.length) S.cases=[['','']];
+    renderCases(); save();
+  }
+  else if(el.hasAttribute('data-j')){
+    const parts = el.getAttribute('data-j').split(' ');
+    $('#apiMethod').value = parts[0]; $('#apiPath').value = parts.slice(1).join(' ');
+  }
+});
+
+document.addEventListener('input', function(e){
+  const el = e.target;
+  if(el.id==='logQ'){ logF.q = el.value; renderLogs(); }
+  if(el.id==='mockJson'){ S.mock = el.value; save(); }
+  if(el.hasAttribute && el.hasAttribute('data-case')){
+    const i = +el.getAttribute('data-case'), c = +el.getAttribute('data-cc');
+    S.cases[i] = S.cases[i] || ['',''];
+    S.cases[i][c] = el.value;
+    const filled = S.cases.filter(function(x){return (x[0]||'').trim() && (x[1]||'').trim();}).length;
+    $('#caseCount').textContent = 'заполнено кейсов: ' + filled + (filled<5 ? ' (ждём минимум 5)' : ' — достаточно');
+    save();
+  }
+  if(el.hasAttribute && el.hasAttribute('data-est')){
+    const i = +el.getAttribute('data-est'), k = el.getAttribute('data-estk');
+    S.est = S.est || {}; S.est[i] = S.est[i] || {};
+    const num = parseFloat(String(el.value).replace(',','.'));
+    S.est[i][k] = isNaN(num) ? 0 : num;
+    save();
+    const pos = el.selectionStart;
+    renderEst(false);
+    const again = document.querySelector('[data-est="'+i+'"][data-estk="'+k+'"]');
+    if(again){ again.focus(); try{ again.setSelectionRange(pos,pos); }catch(err){} }
+  }
+});
+
+$('#apiSend').onclick = sendApi;
+$('#apiClear').onclick = function(){ S.journal = []; renderJournal(); save(); updateScore(); };
+$('#apiPath').addEventListener('keydown', function(e){ if(e.key==='Enter') sendApi(); });
+$('#mockApply').onclick = applyMock;
+$('#mockReset').onclick = function(){ $('#mockJson').value = realOrderJson(); applyMock(); };
+$('#aiCheck').onclick = checkAi;
+$('#caseAdd').onclick = function(){ S.cases.push(['','']); renderCases(); save(); };
+$('#exportBtn').onclick = openReport;
+$('#exportBtn2').onclick = openReport;
+$('#reviewBtn').onclick = function(){
+  const on = !document.body.classList.contains('review-on');
+  setReview(on);
+  renderEst(false);
+  Object.keys(TASKS_INDEX).forEach(function(id){
+    const t = TASKS_INDEX[id];
+    if((t.type==='choice'||t.type==='multi') && S.earned[id]!==undefined) paintVerdict(t, checkTask(t));
+  });
+  if(S.earned.aiStmts!==undefined) checkAi();
+};
+$('#timerBtn').onclick = function(){
+  S.timer.on = !S.timer.on;
+  this.textContent = S.timer.on ? 'Пауза' : 'Старт';
+  save();
+};
+$('#resetBtn').onclick = function(){
+  if(!confirm('Очистить все ответы и таймер? Это действие не отменить — сначала выгрузи отчёт, если он нужен.')) return;
+  try { localStorage.removeItem(KEY); } catch(e){}
+  location.reload();
+};
+$('#timerBtn').textContent = S.timer.on ? 'Пауза' : 'Старт';
+
+spyInit();
+updateScore();
+</script>
+</body>
+</html>
