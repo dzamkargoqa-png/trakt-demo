@@ -324,6 +324,7 @@ body.review-on .quest-row .why{display:block}
       <button class="btn btn-sm btn-ghost" id="timerReset" title="Сбросить таймер" aria-label="Сбросить таймер">↺</button>
     </div>
     <button class="btn btn-sm" id="exportBtn" title="Собрать отчёт: ответы, вердикты, журнал API и SQL">Выгрузить ответы</button>
+    <button class="btn btn-sm btn-ghost" id="resetTop" title="Сбросить прогресс: ответы, баллы, журнал запросов и тест-кейсы. Таймер не трогает.">Сбросить прогресс</button>
     <button class="btn btn-sm btn-ghost" id="reviewBtn" title="Эталоны и вопросы на добивку. Не показывать кандидату.">Режим интервьюера</button>
   </div>
 </div>
@@ -667,7 +668,7 @@ body.review-on .quest-row .why{display:block}
         <div class="tasks" data-block="done"></div>
         <div class="task-foot">
           <button class="btn btn-primary" id="exportBtn2">Собрать отчёт</button>
-          <button class="btn btn-ghost btn-sm" id="resetBtn">Очистить всё и начать заново</button>
+          <button class="btn btn-ghost btn-sm" id="resetBtn">Сбросить прогресс перед следующим кандидатом</button>
         </div>
         <div class="review">
           <div class="rh">Как читать результат</div>
@@ -2198,11 +2199,16 @@ $('#timerBtn').onclick = function(){
   this.textContent = S.timer.on ? 'Пауза' : 'Старт';
   save();
 };
-$('#resetBtn').onclick = function(){
-  if(!confirm('Очистить все ответы и таймер? Это действие не отменить — сначала выгрузи отчёт, если он нужен.')) return;
-  try { localStorage.removeItem(KEY); } catch(e){}
+function resetProgress(){
+  const tot = $('#scoreNow').textContent;
+  if(!confirm('Сбросить прогресс?\n\nСотрутся: ответы, баллы (' + tot + '), журнал API-запросов, SQL-запросы, тест-кейсы и разбор ответа ИИ.\nТаймер останется как есть — его сбрасывает кнопка ↺ рядом с ним.\n\nОтменить это нельзя: если отчёт ещё нужен, сначала нажми «Выгрузить ответы».')) return;
+  const timer = S.timer;
+  S = {answers:{}, earned:{}, journal:[], cases:[], est:{}, ai:[], mock:'', timer:timer};
+  try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){}
   location.reload();
-};
+}
+$('#resetBtn').onclick = resetProgress;
+$('#resetTop').onclick = resetProgress;
 $('#timerBtn').textContent = S.timer.on ? 'Пауза' : 'Старт';
 
 spyInit();
