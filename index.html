@@ -133,6 +133,8 @@ ul.tight{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:5px;f
 ul.tight strong{color:var(--ink)}
 
 /* ---------- task ---------- */
+body.short-run .task.optional{display:none}
+.task.optional{border-style:dashed}
 .task{border:1px solid var(--line);border-radius:7px;background:var(--surface-2);padding:14px 16px;display:flex;flex-direction:column;gap:11px}
 .task-h{display:flex;gap:10px;align-items:baseline}
 .task-h .tn{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--accent);white-space:nowrap;padding-top:1px}
@@ -324,6 +326,7 @@ body.review-on .quest-row .why{display:block}
       <button class="btn btn-sm btn-ghost" id="timerReset" title="Сбросить таймер" aria-label="Сбросить таймер">↺</button>
     </div>
     <button class="btn btn-sm" id="exportBtn" title="Собрать отчёт: ответы, вердикты, журнал API и SQL">Выгрузить ответы</button>
+    <button class="btn btn-sm btn-ghost" id="runMode" title="Короткий прогон: на экране только ядро заданий. Полный — все, включая необязательные.">Короткий прогон</button>
     <button class="btn btn-sm btn-ghost" id="resetTop" title="Сбросить прогресс: ответы, баллы, журнал запросов и тест-кейсы. Таймер не трогает.">Сбросить прогресс</button>
     <button class="btn btn-sm btn-ghost" id="reviewBtn" title="Эталоны и вопросы на добивку. Не показывать кандидату.">Режим интервьюера</button>
   </div>
@@ -419,7 +422,7 @@ body.review-on .quest-row .why{display:block}
         <ul class="tight">
           <li><strong>Рассуждай вслух.</strong> Оценивается ход мысли, а не только попадание в ответ.</li>
           <li><strong>Всё сохраняется</strong> в браузере само; кнопка «Выгрузить ответы» наверху соберёт отчёт для разбора.</li>
-          <li><strong>Не успеть всё — нормально.</strong> Блоки 07–10 обсуждаем голосом, если останется время.</li>
+          <li><strong>Не успеть всё — нормально, так и задумано.</strong> Включён короткий прогон: необязательные задания скрыты. Даже в нём на всё уйдёт около часа, поэтому ядро — блоки <b>02 SQL, 03 API, 04 Логи, 05 Очереди</b> (~28 минут), остальное берём по остатку времени. Кнопка «Короткий прогон» в шапке открывает полный список.</li>
         </ul>
       </div>
     </section>
@@ -432,7 +435,7 @@ body.review-on .quest-row .why{display:block}
           <h2>Разминка: HTTP</h2>
           <p class="sub">Быстрые вопросы по кодам и методам — на тех ситуациях, которые встретятся дальше в задании.</p>
         </div>
-        <div class="sec-meta"><span class="chip time">4 мин</span><span class="chip pts" data-pts="http">0 б</span></div>
+        <div class="sec-meta"><span class="chip time" data-short="3" data-full="4">3 мин</span><span class="chip pts" data-pts="http">0 б</span></div>
       </div>
       <div class="sec-b">
         <div class="tasks" data-block="http"></div>
@@ -448,7 +451,7 @@ body.review-on .quest-row .why{display:block}
           <h2>SQL: найти следы инцидента в базе</h2>
           <p class="sub">Реальный SQL-движок в браузере. Пиши запрос, жми «Выполнить» — увидишь настоящий результат. Проверяется результат, а не текст запроса.</p>
         </div>
-        <div class="sec-meta"><span class="chip time">12 мин</span><span class="chip pts" data-pts="sql">0 б</span></div>
+        <div class="sec-meta"><span class="chip time" data-short="8" data-full="12">8 мин</span><span class="chip pts" data-pts="sql">0 б</span></div>
       </div>
       <div class="sec-b">
         <div class="schema" id="schema"></div>
@@ -465,7 +468,7 @@ body.review-on .quest-row .why{display:block}
           <h2>API: разобраться запросами</h2>
           <p class="sub">Живая консоль к стенду Тракта. Отвечает настоящий мок: коды, заголовки, тела ответов — как у боевого сервиса.</p>
         </div>
-        <div class="sec-meta"><span class="chip time">12 мин</span><span class="chip pts" data-pts="api">0 б</span></div>
+        <div class="sec-meta"><span class="chip time" data-short="8" data-full="12">8 мин</span><span class="chip pts" data-pts="api">0 б</span></div>
       </div>
       <div class="sec-b">
         <div class="api">
@@ -508,7 +511,7 @@ body.review-on .quest-row .why{display:block}
           <h2>Логи: найти корень в потоке</h2>
           <p class="sub">Выгрузка из Loki за 16.09, 10:12–10:35. Фильтр ищет подстроку по всей строке, чипы сужают по сервису и уровню.</p>
         </div>
-        <div class="sec-meta"><span class="chip time">10 мин</span><span class="chip pts" data-pts="logs">0 б</span></div>
+        <div class="sec-meta"><span class="chip time" data-short="7" data-full="10">7 мин</span><span class="chip pts" data-pts="logs">0 б</span></div>
       </div>
       <div class="sec-b">
         <div class="logbar">
@@ -530,7 +533,7 @@ body.review-on .quest-row .why{display:block}
           <h2>Очереди: Kafka и RabbitMQ</h2>
           <p class="sub">Снимок состояния топика <code>trip.signed.v1</code> на момент инцидента. Ключ партиционирования — <code>company_id</code>.</p>
         </div>
-        <div class="sec-meta"><span class="chip time">8 мин</span><span class="chip pts" data-pts="mq">0 б</span></div>
+        <div class="sec-meta"><span class="chip time" data-short="5" data-full="8">5 мин</span><span class="chip pts" data-pts="mq">0 б</span></div>
       </div>
       <div class="sec-b">
         <div class="tw">
@@ -553,7 +556,7 @@ body.review-on .quest-row .why{display:block}
           <h2>Подмена трафика</h2>
           <p class="sub">Разработчик спрашивает: «а как экран должен выглядеть после фикса?» Собери это подменой ответа, не дожидаясь бэкенда.</p>
         </div>
-        <div class="sec-meta"><span class="chip time">7 мин</span><span class="chip pts" data-pts="proxy">0 б</span></div>
+        <div class="sec-meta"><span class="chip time" data-short="4" data-full="7">4 мин</span><span class="chip pts" data-pts="proxy">0 б</span></div>
       </div>
       <div class="sec-b">
         <div class="api">
@@ -585,7 +588,7 @@ body.review-on .quest-row .why{display:block}
           <h2>Тест-дизайн: кейсы на фикс</h2>
           <p class="sub">Фикс: <code>billing-consumer</code> перестаёт падать на пустой ставке НДС, а <code>POST /sign</code> получает ключ идемпотентности. Проверяется не количество кейсов, а покрытие рисков.</p>
         </div>
-        <div class="sec-meta"><span class="chip time">10 мин</span><span class="chip pts" data-pts="cases">ручная оценка</span></div>
+        <div class="sec-meta"><span class="chip time" data-short="7" data-full="10">7 мин</span><span class="chip pts" data-pts="cases">ручная оценка</span></div>
       </div>
       <div class="sec-b">
         <div class="tasks" data-block="cases"></div>
@@ -601,7 +604,7 @@ body.review-on .quest-row .why{display:block}
           <h2>Git: фикс едет на прод</h2>
           <p class="sub">В репозитории <code>trakt-billing</code> ветки <code>main</code>, <code>develop</code>, <code>release/1.12</code>. На проде сейчас тег <code>v1.12.3</code>.</p>
         </div>
-        <div class="sec-meta"><span class="chip time">6 мин</span><span class="chip pts" data-pts="git">0 б</span></div>
+        <div class="sec-meta"><span class="chip time" data-short="4" data-full="6">4 мин</span><span class="chip pts" data-pts="git">0 б</span></div>
       </div>
       <div class="sec-b">
         <div class="tw"><pre id="gitLog" style="padding:12px 14px"></pre></div>
@@ -618,7 +621,7 @@ body.review-on .quest-row .why{display:block}
           <h2>Оценка: сколько стоит проверить фикс</h2>
           <p class="sub">ПМ просит цифру к вечеру. Прикинь три точки по каждой подзадаче — сколько выйдет, если всё гладко, сколько скорее всего и сколько если не повезёт, — и защити итог.</p>
         </div>
-        <div class="sec-meta"><span class="chip time">7 мин</span><span class="chip pts" data-pts="est">0 б</span></div>
+        <div class="sec-meta"><span class="chip time" data-short="5" data-full="7">5 мин</span><span class="chip pts" data-pts="est">0 б</span></div>
       </div>
       <div class="sec-b">
         <div class="est tw">
@@ -643,16 +646,11 @@ body.review-on .quest-row .why{display:block}
           <h2>Работа с ИИ</h2>
           <p class="sub">ИИ здесь разрешён везде. Оценивается не факт использования, а умение сформулировать запрос и проверить ответ.</p>
         </div>
-        <div class="sec-meta"><span class="chip time">8 мин</span><span class="chip pts" data-pts="ai">0 б</span></div>
+        <div class="sec-meta"><span class="chip time" data-short="4" data-full="8">4 мин</span><span class="chip pts" data-pts="ai">0 б</span></div>
       </div>
       <div class="sec-b">
-        <div class="note"><b>Разбор ответа нейросети.</b> Коллега скинул инцидент в чат-бот вместе с логами и получил ответ ниже. Отметь все утверждения, которые нельзя нести разработчику, — неверные или непроверяемые по имеющимся данным.</div>
-        <div class="stmts" id="aiStmts"></div>
-        <div id="aiVerdict"></div>
-        <div class="task-foot"><button class="btn btn-primary btn-sm" id="aiCheck">Проверить разбор</button></div>
-        <div id="aiReview"></div>
-        <hr class="hr">
         <div class="tasks" data-block="ai"></div>
+        <div class="task-foot"><button class="btn btn-primary btn-sm" data-check="ai">Проверить блок</button></div>
       </div>
     </section>
 
@@ -1103,13 +1101,13 @@ http: [
   model:'GET, PUT, DELETE (плюс HEAD/OPTIONS). POST и PATCH — нет.',
   probe:['Идемпотентный — это то же, что безопасный (safe)?','DELETE второй раз вернёт 404 — он всё ещё идемпотентен?']},
 
- {id:'h3', type:'choice', pts:2,
+ {id:'h3', opt:true, type:'choice', pts:2,
   q:'doc-service принимает подпись, но реальный ответ от оператора ЭДО придёт через минуту. Какой код вернуть клиенту сразу?',
   opts:['200 OK','201 Created','202 Accepted','102 Processing'], ans:2,
   model:'202 Accepted + способ узнать результат (polling или вебхук).',
   probe:['Что положишь в тело 202, чтобы клиент не долбил сервис каждую секунду?']},
 
- {id:'h4', type:'choice', pts:2,
+ {id:'h4', opt:true, type:'choice', pts:2,
   q:'На нагрузке gateway отдаёт то 502, то 504. Что это говорит о месте проблемы?',
   opts:['Оба кода — про невалидный запрос клиента','502 — апстрим ответил мусором или упал, 504 — апстрим не ответил за таймаут; в обоих случаях проблема за гейтвеем','502 — сервис на техработах, 504 — клиент отвалился по сети','Это одно и то же, разница историческая'],
   ans:1, model:'5xx — ответственность серверной стороны; 502 — плохой ответ апстрима, 504 — таймаут апстрима.',
@@ -1139,7 +1137,7 @@ sql: [
   model:'6 заказов: 4468, 4470, 4471, 4474, 4477, 4479. Ловушка — заказ 4483 создан сегодня в 09:40, под «более 24 часов» не попадает.',
   probe:['Заказ 4483 у тебя попал в выборку? Почему нет?','Как бы ты написал это условие, если бы «сейчас» брали из БД, а не хардкодом?']},
 
- {id:'s2', type:'sql', pts:6,
+ {id:'s2', opt:true, type:'sql', pts:6,
   q:'Найди дубликаты: external_id документов, по которым в таблице documents больше одной записи. Выведи external_id и количество.',
   seed:'SELECT ...\nFROM documents\nGROUP BY ...',
   expect:[['ETRN-4471-01','ETRN-4470-01']], rows:2,
@@ -1179,13 +1177,13 @@ api: [
   model:'vat_rate (в API — vatRate) у компании 1. Видно из 422 на POST /v1/invoices и из GET /v1/companies/1.',
   probe:['Каким одним запросом ты это доказал?','Кто владелец этого поля и почему PATCH вернул 403?']},
 
- {id:'a3', type:'choice', pts:3,
+ {id:'a3', opt:true, type:'choice', pts:3,
   q:'Повторный POST /v1/trips/5471/sign вернул 409 already_signed. Это баг?',
   opts:['Да, должно быть 200 — подпись же прошла','Нет: рейс уже подписан, а без ключа идемпотентности сервис правильно отказывается делать это ещё раз','Да, должно быть 422 — состояние не подходит','Нет, но правильнее было бы 204'],
   ans:1, model:'409 корректен. Баг в другом: до фикса сервис 409 не отдавал и плодил документы — это видно в логах и в таблице documents.',
   probe:['Тогда где здесь настоящий баг?']},
 
- {id:'a4', type:'num', pts:3,
+ {id:'a4', opt:true, type:'num', pts:3,
   q:'Сколько документов реально создано по рейсу 5471? (проверь через API)',
   ans:3, tol:0, right:'3 документа с одним и тем же external_id ETRN-4471-01',
   model:'3 документа с одинаковым external_id ETRN-4471-01 — следствие трёх ретраев клиента без Idempotency-Key.',
@@ -1219,7 +1217,7 @@ logs: [
   model:'5 попыток с растущим бэкоффом. Ловушка фильтра: по подстроке «ret» находятся только три строки «retries exhausted» — но это три РАЗНЫХ сообщения (offset 88214, 88215 и 88216, по одному на каждый дубликат документа), а не три попытки. Сами попытки видно по подстроке «attempt».',
   probe:['Три строки «retries exhausted» — это три попытки или три сообщения? Почему их именно три?','Сколько суммарно времени консьюмер держал партицию и как это связано с лагом?','По какой подстроке ты искал? Что фильтр мог спрятать?']},
 
- {id:'l4', type:'short', pts:3, q:'Offset первого сообщения, ушедшего в DLQ:', accept:[/88214/], ph:'число', mono:true,
+ {id:'l4', opt:true, type:'short', pts:3, q:'Offset первого сообщения, ушедшего в DLQ:', accept:[/88214/], ph:'число', mono:true,
   right:'88214 (партиция 2; следом ушли 88215 и 88216)',
   model:'88214 (партиция 2). Следом ушли 88215 и 88216 — по одному на каждый дубликат документа.',
   probe:['Почему в DLQ оказалось ровно 3 сообщения?']},
@@ -1255,13 +1253,13 @@ mq: [
   ans:1, model:'Kafka — лог с offset и retention, читатели независимы и могут перечитывать. RabbitMQ — очередь с ack/nack, requeue и DLX; после ack сообщения нет.',
   probe:['Где в нашей схеме важен порядок сообщений, а где нет?','Что такое at-least-once и почему из-за него нужна идемпотентность потребителя?']},
 
- {id:'m4', type:'multi', pts:4,
+ {id:'m4', opt:true, type:'multi', pts:4,
   q:'Фикс выкатили и переиграли DLQ. Что проверишь именно по очередям?',
   opts:['Лаг по всем партициям вернулся к нулю и не растёт','DLQ не пополняется новыми сообщениями','Повторная обработка не создала второй счёт на тот же заказ','Сообщения из DLQ обработались и по всем 6 заказам появились счета','Количество партиций увеличилось','Продюсер стал отправлять сообщения синхронно'],
   ans:[0,1,2,3], model:'Первые четыре. Дубли счетов — главный риск переигрывания, про него забывают чаще всего.',
   probe:['Как проверишь «нет дублей» — глазами или запросом?']},
 
- {id:'m5', type:'free', pts:0, rows:2,
+ {id:'m5', opt:true, type:'free', pts:0, rows:2,
   q:'Как ты воспроизведёшь этот баг на тестовом стенде, чтобы убедиться, что фикс работает?',
   model:'Ждём: завести компанию без vat_rate, провести рейс до подписи, увидеть счёт (а не DLQ). Плюс отдельная проверка: старые сообщения из DLQ переигрываются без дублей.',
   probe:['Тебе для этого нужен разработчик или справишься сам?']}
@@ -1274,13 +1272,13 @@ proxy: [
   ans:[0,1,3,4], model:'Всё, кроме Local Overrides: это инструмент браузера и на нативное приложение не действует.',
   probe:['Что именно делает установка корневого сертификата и почему без неё HTTPS не читается?']},
 
- {id:'p2', type:'choice', pts:4,
+ {id:'p2', opt:true, type:'choice', pts:4,
   q:'Приложение с certificate pinning перестало работать через прокси. Что это значит?',
   opts:['Прокси настроен неверно, нужно переустановить сертификат','Приложение сверяет сертификат/публичный ключ сервера с зашитым эталоном, и подменённый CA его не устраивает — нужен билд с отключённым пиннингом или другой способ отладки','На устройстве закончилось место под сертификаты','Pinning ломает только HTTP, надо перейти на HTTPS'],
   ans:1, model:'Пиннинг — защита от MITM. Обход — дебажный билд/флаг, а не «сломать защиту».',
   probe:['Это баг приложения или ожидаемое поведение? Что напишешь в отчёте?']},
 
- {id:'p3', type:'free', pts:0, rows:3,
+ {id:'p3', opt:true, type:'free', pts:0, rows:3,
   q:'Когда подмена ответа — правильный инструмент, а когда она обманывает тебя саму?',
   model:'Правильно: проверить фронт на состояниях, которые сложно воспроизвести (пустой список, 500, таймаут, длинные поля, редкие статусы). Самообман: «проверил на моке» вместо интеграции — мок не докажет, что бэкенд отдаёт именно такое поле и именно такой формат.',
   probe:['Если фронт на моке работает, а на интеграции нет — где ты проверишь контракт?']}
@@ -1305,7 +1303,7 @@ cases: [
   ans:1, model:'Сначала сквозной путь на тех данных, ради которых чинили, и рядом — обычный сценарий, чтобы не сломали работающее.',
   probe:['Что скажешь, если после проверки остались сомнения, а релиз уже уезжает?']},
 
- {id:'c4', type:'free', pts:0, rows:2,
+ {id:'c4', opt:true, type:'free', pts:0, rows:2,
   q:'Какие из этих кейсов ты бы автоматизировал и на каком уровне (unit / API / UI)?',
   model:'Ждём: проверки идемпотентности и счёта — на уровне API, обработка NULL — unit/контрактный тест в сервисе, UI — только один сквозной сценарий. Красный флаг: «всё через UI».',
   probe:['Почему не UI-тестами всё?']}
@@ -1318,7 +1316,7 @@ git: [
   ans:1, model:'cherry-pick одного коммита. Merge притащит BILL-898 и всё остальное из develop, чего в релизе быть не должно.',
   probe:['Что потом сделать, чтобы фикс не потерялся при следующем мердже release в main/develop?']},
 
- {id:'g2', type:'choice', pts:3,
+ {id:'g2', opt:true, type:'choice', pts:3,
   q:'Смотрим на граф. Где сейчас живёт функциональность из feature/idempotent-sign?',
   opts:['В main и в release/1.12','Только в develop: ветка влита мерж-коммитом e5512cd, в release/1.12 её нет','В release/1.12, оттуда попадёт в develop','Нигде: ветка не влита'],
   ans:1, model:'Только в develop. Значит, на проде (тег v1.12.3 на release/1.12) идемпотентности подписи нет — что и объясняет три документа.',
@@ -1336,7 +1334,7 @@ git: [
   ans:1, model:'bisect — бинарный поиск по истории с воспроизведением бага на каждом шаге. blame и diff помогают, когда уже примерно знаешь файл.',
   probe:['Что нужно подготовить, чтобы bisect был быстрым?']},
 
- {id:'g5', type:'free', pts:0, rows:2,
+ {id:'g5', opt:true, type:'free', pts:0, rows:2,
   q:'Тебе нужен стенд с фиксом поверх релизной ветки. Напиши команды, которыми соберёшь такую ветку.',
   model:'Ждём примерно: git fetch, git checkout -b qa/INC-4471 origin/release/1.12, git cherry-pick 8f21ac0, разрешить конфликт, push. Важнее точности команд — понимание, от чего ответвляться.',
   probe:['Что сделаешь, если cherry-pick упал с конфликтом?']}
@@ -1368,48 +1366,62 @@ est: [
   ans:1, model:'Процент — нормальный инструмент планирования на входе (обычно 25–35%), но он не заменяет разбор задачи. Ключевое в ответе — оговорка про область применимости.',
   probe:['Когда процент врёт сильнее всего? (интеграции, миграции, чужой легаси)']},
 
- {id:'e4', type:'free', pts:0, rows:2,
+ {id:'e4', opt:true, type:'free', pts:0, rows:2,
   q:'Что попросишь у команды взамен названной цифры?',
   model:'Ждём: зафиксировать допущения («19–20 ч при условии, что стенд с данными есть к утру; если нет — плюс день ожидания»), договориться, что делать при выходе за оценку, и кто принимает решение сокращать объём проверок.',
   probe:['Что делаешь, когда оценка поехала на середине задачи — молчишь до конца или приходишь сразу?']},
 
- {id:'e5', type:'free', pts:0, rows:2,
+ {id:'e5', opt:true, type:'free', pts:0, rows:2,
   q:'Когда оценка «пальцем в небо» — законный метод, а когда халтура?',
   model:'Ждём: экспертная оценка законна для грубого сравнения вариантов и когда цена ошибки мала; халтура — когда по ней берут обязательства перед клиентом или считают сроки релиза.',
   probe:['Как повышаешь точность такой оценки? (аналогии с прошлыми задачами, декомпозиция, чужой опыт)']}
 ],
 
 ai: [
- {id:'ai1', type:'multi', pts:4,
+ {id:'ai1', type:'multi', pts:6,
+  q:'Агентные инструменты (Claude Code и подобные) настраивают хуками и скиллами. Что здесь верно?',
+  opts:['Хук — команда, которую сам инструмент запускает на событие: перед вызовом инструмента, после правки файла, на завершении. Выполняется всегда',
+        'Скилл — набор инструкций и файлов, который модель подхватывает, когда задача под него подходит; решение подгрузить его принимает модель',
+        'Хук может заблокировать действие — например не дать выполнить команду; скилл так не умеет',
+        'Скилл срабатывает детерминированно: если он установлен, он применяется к каждому запросу',
+        'Хуки живут в настройках (settings.json) и описывают событие и команду, а скилл — это папка с описанием и файлами',
+        'Хук — это тот же промпт в начале диалога, просто сохранённый'],
+  ans:[0,1,2,4],
+  right:'Верны 1, 2, 3 и 5',
+  model:'Граница простая: хук — детерминированная автоматика инструмента (сработает всегда, может остановить действие), скилл — знание, которое модель подтягивает по своему решению и может не подтянуть. Поэтому проверки, которые обязаны выполняться (линтер, запрет опасных команд, автотест перед коммитом), вешают на хуки, а «как у нас принято делать X» — оформляют скиллом.',
+  probe:['Что бы ты сам повесил на хук в своей работе?','Если скилл не подхватился, как это заметить?','Чем это отличается от простого файла с инструкциями в корне репозитория?']},
+
+ {id:'ai2', type:'multi', pts:4,
+  q:'Модель уверенно разобрала инцидент. Что делаешь, прежде чем нести это разработчику?',
+  opts:['Проверяю каждое фактическое утверждение по логам, базе или API',
+        'Смотрю, не сослалась ли модель на данные, которых я ей не давал',
+        'Прошу показать, на какие строки логов она опирается, и нахожу их сам',
+        'Если ответ связный и логичный — этого достаточно',
+        'Переспрашиваю ту же модель «ты уверен?» и принимаю второй ответ'],
+  ans:[0,1,2],
+  right:'Верны 1, 2 и 3',
+  model:'Модель уверена всегда — и когда права, и когда выдумала. Проверка — это сверка с источником, а не повторный вопрос той же модели: на «ты уверен?» она чаще всего просто меняет ответ на противоположный.',
+  probe:['Ловил ли ты модель на выдуманных деталях? На чём именно?','Как отличишь «модель ошиблась» от «я плохо сформулировал запрос»?']},
+
+ {id:'ai3', type:'multi', pts:4,
   q:'Что нельзя отправлять в публичный чат-бот с рабочей машины?',
   opts:['Боевые токены и пароли из конфигов','Логи с персональными данными клиентов и ИНН реальных компаний','Выгрузку боевой БД','Обезличенную схему таблиц без данных','Текст ошибки из своего локального стенда'],
   ans:[0,1,2], model:'Секреты, ПДн и боевые данные — нет. Схема без данных и локальные ошибки — обычно можно, но правило берётся из политики компании, а не из головы.',
   probe:['Где в компании написано, что можно отдавать, а что нет? Спрашивал?']},
 
- {id:'ai2', type:'free', pts:0, rows:3,
+ {id:'ai4', type:'free', pts:0, rows:3, opt:true,
   q:'Где сегодня ИИ реально сэкономил время, а где увёл бы не туда, если бы ты не проверил?',
   model:'Сильный ответ называет конкретный момент: «сгенерил SQL, но он не учитывал NULL» / «предложил 502 как причину — отмёл по trace_id». Слабый: «ИИ помог во всём» или «я им не пользуюсь».',
-  probe:['Как ты вообще решаешь, доверять ли ответу модели?','Покажи промпт, которым пользовался: что дал модели из контекста, а что сознательно не дал?','Если не пользовался — на каком шаге ИИ помог бы больше всего?']}
+  probe:['Как ты вообще решаешь, доверять ли ответу модели?','Покажи промпт, которым пользовался: что дал модели из контекста, а что сознательно не дал?']}
 ],
 
 done: [
- {id:'z1', type:'free', pts:0, rows:3,
+ {id:'z1', opt:true, type:'free', pts:0, rows:3,
   q:'Что в этом задании показалось сомнительным или спроектированным неправильно? Что бы ты спросил у команды в первый день?',
   model:'Ждём здоровой критики: почему статус заказа зависит от счёта, почему vat_rate вообще может быть NULL при активной компании, почему ретраи клиента не ограничены, где мониторинг DLQ и почему про инцидент узнали от клиента, а не от алерта.',
   probe:['Что бы ты добавил в мониторинг, чтобы такой инцидент находили без клиента?']}
 ]
 };
-
-const AI_STATEMENTS = [
- {t:'Судя по логам, корень — 502 от tariff-service: запрос на подпись просто не дошёл до doc-service.', bad:true},
- {t:'Достаточно перезапустить billing-consumer — он сам перечитает сообщения из DLQ и создаст недостающие счета.', bad:true},
- {t:'Дубликаты документов ETRN-4471-01 появились из-за повторных запросов клиента без ключа идемпотентности.', bad:false},
- {t:'Kafka не гарантирует порядок сообщений, поэтому счёт мог быть создан раньше подписи.', bad:true},
- {t:'Корневая причина — vat_rate = NULL у компании 1: billing-consumer не может собрать счёт и после пяти попыток уводит сообщение в DLQ.', bad:false},
- {t:'Чтобы починить быстро, выполните на проде UPDATE companies SET vat_rate = 20 WHERE id = 1 — это безопасно и обратимо.', bad:true}
-];
-const AI_RIGHT = 'Неверные утверждения: 1, 2, 4 и 6. Верные: 3 и 5.';
-const AI_MODEL = 'Неверные: 1 (другой trace_id и другое время — ложный след), 2 (offset закоммичен, DLQ — отдельный топик), 4 (в пределах партиции порядок гарантирован), 6 (UPDATE на проде мимо владельца данных и без миграции — и «обратимо» здесь неправда). Верные: 3 и 5.';
 
 const EST_ROWS = [
   {name:'Тест-дизайн и кейсы', o:2, m:4, p:8},
@@ -1450,12 +1462,12 @@ function save(){
 }
 
 const QUEST_MAX = API_QUEST.reduce(function(a,q){return a+q.pts;}, 0);
-function maxPts(block){ return (TASKS[block]||[]).reduce(function(a,t){return a+(t.pts||0);},0)
-  + (block==='ai'?8:0) + (block==='proxy'?6:0) + (block==='api'?QUEST_MAX:0); }
+function inRun(t){ return !(t.opt && S.shortRun !== false); }
+function maxPts(block){ return (TASKS[block]||[]).reduce(function(a,t){return a + (inRun(t)?(t.pts||0):0);},0)
+  + (block==='proxy'?6:0) + (block==='api'?QUEST_MAX:0); }
 function earnedPts(block){
-  return (TASKS[block]||[]).reduce(function(a,t){return a + (S.earned[t.id]||0);},0)
-    + (block==='ai'?(S.earned.aiStmts||0):0) + (block==='proxy'?(S.earned.mock||0):0)
-    + (block==='api'?(S.earned.apiQuest||0):0);
+  return (TASKS[block]||[]).reduce(function(a,t){return a + (inRun(t)?(S.earned[t.id]||0):0);},0)
+    + (block==='proxy'?(S.earned.mock||0):0) + (block==='api'?(S.earned.apiQuest||0):0);
 }
 function updateScore(){
   let tot=0, max=0;
@@ -1468,8 +1480,9 @@ function updateScore(){
   });
   $$('#rail a').forEach(function(a){
     const b = a.getAttribute('data-sec'); const dot = $('.dot', a); if(!dot) return;
-    const answered = (TASKS[b]||[]).filter(function(t){ return hasAnswer(t.id); }).length;
-    const total = (TASKS[b]||[]).length;
+    const list = (TASKS[b]||[]).filter(inRun);
+    const answered = list.filter(function(t){ return hasAnswer(t.id); }).length;
+    const total = list.length;
     dot.className = 'dot' + (total && answered>=total ? ' done' : (answered? ' part':''));
   });
   const grid = $('#scoreGrid');
@@ -1506,10 +1519,11 @@ function reviewHtml(t){
     '</div>';
 }
 function taskShell(t, i, inner){
-  return '<div class="task" id="task-'+t.id+'" data-task="'+t.id+'">'+
+  return '<div class="task'+(t.opt?' optional':'')+'" id="task-'+t.id+'" data-task="'+t.id+'">'+
     '<div class="task-h"><span class="tn">'+t.id.toUpperCase()+'</span>'+
       '<div class="task-q">'+esc(t.q)+ (t.sub? '<span class="q-sub">'+esc(t.sub)+'</span>':'') +'</div>'+
-      (t.pts? '<span class="chip pts" style="margin-left:auto">'+t.pts+' б</span>':'<span class="chip" style="margin-left:auto">устно</span>')+
+      (t.opt? '<span class="chip" style="margin-left:auto">если есть время</span>':'')+
+      (t.pts? '<span class="chip pts"'+(t.opt?'':' style="margin-left:auto"')+'>'+t.pts+' б</span>':(t.opt?'':'<span class="chip" style="margin-left:auto">устно</span>'))+
     '</div>'+ inner +
     '<div class="verdict idle" data-v="'+t.id+'" hidden></div>'+
     reviewHtml(t)+'</div>';
@@ -1595,7 +1609,7 @@ function paintVerdict(t, ok){
   }
 }
 function checkBlock(block){
-  (TASKS[block]||[]).forEach(function(t){
+  (TASKS[block]||[]).filter(inRun).forEach(function(t){
     if(t.type==='sql' || t.type==='cases' || t.type==='free'){ if(t.type==='free') paintVerdict(t, null); return; }
     const ok = checkTask(t);
     S.earned[t.id] = ok ? (t.pts||0) : 0;
@@ -1674,20 +1688,16 @@ function buildReport(){
   L.push('');
   L.push('Дата разбора: ' + new Date().toLocaleString('ru-RU'));
   let tot=0, max=0; Object.keys(TASKS).forEach(function(b){tot+=earnedPts(b);max+=maxPts(b);});
-  L.push('Автобаллы: **' + tot + ' / ' + max + '**');
+  L.push('Автобаллы: **' + tot + ' / ' + max + '**' + (S.shortRun===false ? ' (полный прогон)' : ' (короткий прогон — необязательные задания скрыты)'));
   L.push('');
   SECTIONS.forEach(function(s){
     const list = TASKS[s.id]; if(!list) return;
     L.push('## ' + s.n + ' ' + s.t + '  (' + earnedPts(s.id) + '/' + maxPts(s.id) + ')');
-    if(s.id==='ai' && S.answers.aiStmts){
-      L.push('- **Разбор ответа ИИ**: отмечены утверждения ' + (S.answers.aiStmts.map(function(i){return i+1;}).join(', ')||'—') +
-             ' · ' + (S.earned.aiStmts||0) + '/8 б');
-    }
     if(s.id==='proxy'){
       L.push('- **Подмена ответа**: ' + (S.earned.mock ? 'собрана верно' : 'не собрана / собрана неверно') + ' · ' + (S.earned.mock||0) + '/6 б');
       if(S.mock) L.push('```json\n' + S.mock + '\n```');
     }
-    list.forEach(function(t){
+    list.filter(inRun).forEach(function(t){
       const a = S.answers[t.id];
       let shown = '—';
       if(t.type==='choice') shown = (a===undefined||a===null)?'—':('('+(checkTask(t)?'верно':'неверно')+') '+t.opts[a]);
@@ -2017,44 +2027,9 @@ function renderEst(reveal){
     '<ul><li>Спроси это, только если кандидат сам заговорил про запас и вероятности — в требования блока это не входит.</li></ul></div>';
 }
 
-/* ---------- ИИ ---------- */
-function renderAi(){
-  const sel = S.answers.aiStmts || [];
-  $('#aiStmts').innerHTML = AI_STATEMENTS.map(function(s, i){
-    return '<div class="stmt'+(sel.indexOf(i)>=0?' sel':'')+'" data-stmt="'+i+'"><span class="sn">'+(i+1)+'</span><span>'+esc(s.t)+'</span></div>';
-  }).join('');
-}
-function checkAi(){
-  const sel = S.answers.aiStmts || [];
-  let hit = 0, miss = 0, wrong = 0;
-  AI_STATEMENTS.forEach(function(s, i){
-    const picked = sel.indexOf(i)>=0;
-    if(s.bad && picked) hit++;
-    if(s.bad && !picked) miss++;
-    if(!s.bad && picked) wrong++;
-  });
-  const pts = Math.max(0, Math.min(8, hit*2 - wrong*2));
-  S.earned.aiStmts = pts;
-  $$('#aiStmts .stmt').forEach(function(el){
-    const i = +el.getAttribute('data-stmt');
-    el.classList.remove('right','miss');
-    if(AI_STATEMENTS[i].bad) el.classList.add(sel.indexOf(i)>=0 ? 'right' : 'miss');
-    else if(sel.indexOf(i)>=0) el.classList.add('miss');
-  });
-  $('#aiVerdict').innerHTML = '<div class="verdict '+(pts>=6?'ok':'err')+'"><b>'+pts+' / 8 б.</b> '+
-    'Найдено неверных: '+hit+' из 4, пропущено: '+miss+', отмечено лишнего: '+wrong+'. '+
-    (document.body.classList.contains('review-on') ? esc(AI_MODEL) : 'Разбираем голосом.')+'</div>';
-  save(); updateScore();
-}
-
 /* ---------- эталоны для двух практических блоков ---------- */
 const MOCK_REF = '{\n  "id": 4471,\n  "companyId": 1,\n  "status": "invoiced",\n  "statusTitle": "Счёт выставлен",\n  "amount": 148500,\n  "currency": "RUB",\n  "invoiceId": 7999,\n  "documentsCount": 3\n}';
 function renderStaticReviews(){
-  $('#aiReview').innerHTML = '<div class="review"><div class="rh">Эталон и добивка</div>'+
-    '<div class="ra"><b>Правильный ответ</b><span>'+esc(AI_RIGHT)+'</span></div>'+
-    '<div>'+esc(AI_MODEL)+'</div>'+
-    '<ul><li>Какое из утверждений он бы понёс разработчику не задумываясь — и почему это опасно?</li>'+
-    '<li>Как он проверял бы утверждение №6 про UPDATE на проде, если бы не знал ответа?</li></ul></div>';
   $('#mockReview').innerHTML = '<div class="review"><div class="rh">Эталон и добивка</div>'+
     '<div class="ra"><b>Правильный ответ</b><span>status = invoiced, непустой invoiceId, amount = 148500; statusTitle — «Счёт выставлен»</span></div>'+
     '<div>Засчитывается любой JSON с этими полями — проверяется результат в ЛК, а не текст подмены.</div>'+
@@ -2077,7 +2052,6 @@ renderLogs();
 renderParts();
 renderCases();
 renderEst(false);
-renderAi();
 renderStaticReviews();
 $('#gitLog').textContent = GIT_LOG;
 $('#mockJson').value = S.mock || realOrderJson();
@@ -2098,14 +2072,13 @@ Object.keys(TASKS_INDEX).forEach(function(id){
     } else paintVerdict(t, checkTask(t));
   }
 });
-if(S.earned.aiStmts!==undefined) checkAi();
 if(S.mock) applyMock();
 
 paintTimer();
 if(/review/i.test(location.hash)) setReview(true);
 
 document.addEventListener('click', function(e){
-  const el = e.target.closest ? e.target.closest('[data-check],[data-sql],[data-svc],[data-lvl],[data-stmt],[data-delcase],[data-j]') : null;
+  const el = e.target.closest ? e.target.closest('[data-check],[data-sql],[data-svc],[data-lvl],[data-delcase],[data-j]') : null;
   if(!el) return;
   if(el.hasAttribute('data-check')){
     const b = el.getAttribute('data-check');
@@ -2118,13 +2091,6 @@ document.addEventListener('click', function(e){
   }
   else if(el.hasAttribute('data-lvl')){
     const l = el.getAttribute('data-lvl'); logF.lvl = (logF.lvl===l?null:l); renderLogChips(); renderLogs();
-  }
-  else if(el.hasAttribute('data-stmt')){
-    const i = +el.getAttribute('data-stmt');
-    const sel = (S.answers.aiStmts || []).slice();
-    const at = sel.indexOf(i);
-    if(at>=0) sel.splice(at,1); else sel.push(i);
-    S.answers.aiStmts = sel; renderAi(); save();
   }
   else if(el.hasAttribute('data-delcase')){
     const i = +el.getAttribute('data-delcase');
@@ -2167,7 +2133,6 @@ $('#apiClear').onclick = function(){ S.journal = []; renderJournal(); renderQues
 $('#apiPath').addEventListener('keydown', function(e){ if(e.key==='Enter') sendApi(); });
 $('#mockApply').onclick = applyMock;
 $('#mockReset').onclick = function(){ $('#mockJson').value = realOrderJson(); applyMock(); };
-$('#aiCheck').onclick = checkAi;
 $('#caseAdd').onclick = function(){ S.cases.push(['','']); renderCases(); save(); };
 $('#exportBtn').onclick = openReport;
 $('#exportBtn2').onclick = openReport;
@@ -2180,7 +2145,6 @@ $('#reviewBtn').onclick = function(){
     const t = TASKS_INDEX[id];
     if((t.type==='choice'||t.type==='multi') && S.earned[id]!==undefined) paintVerdict(t, checkTask(t));
   });
-  if(S.earned.aiStmts!==undefined) checkAi();
 };
 if(!S.timer.total) S.timer.total = 45*60;
 function resetTimer(sec){
@@ -2215,6 +2179,24 @@ function resetProgress(){
 $('#resetBtn').onclick = resetProgress;
 $('#resetTop').onclick = resetProgress;
 $('#timerBtn').textContent = S.timer.on ? 'Пауза' : 'Старт';
+
+/* ---------- короткий / полный прогон ---------- */
+function applyRunMode(){
+  const short = S.shortRun !== false;
+  document.body.classList.toggle('short-run', short);
+  $('#runMode').textContent = short ? 'Короткий прогон' : 'Полный прогон';
+  $('#runMode').classList.toggle('btn-ghost', short);
+  $$('.chip.time').forEach(function(c){
+    const v = short ? c.getAttribute('data-short') : c.getAttribute('data-full');
+    if(v) c.textContent = v + ' мин';
+  });
+  updateScore();
+}
+$('#runMode').onclick = function(){
+  S.shortRun = (S.shortRun === false);
+  save(); applyRunMode();
+};
+applyRunMode();
 
 spyInit();
 updateScore();
