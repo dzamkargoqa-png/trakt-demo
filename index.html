@@ -162,6 +162,10 @@ textarea.mono,input.mono{font-family:var(--mono);font-size:13px}
 .review{display:none;border:1px dashed var(--info);background:var(--info-soft);color:var(--ink);border-radius:6px;padding:10px 13px;font-size:13.5px;flex-direction:column;gap:6px}
 body.review-on .review{display:flex}
 .review .rh{font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;color:var(--info)}
+.review .ra{display:flex;gap:7px;align-items:baseline;padding:7px 10px;border-radius:5px;background:var(--ok-soft);border:1px solid var(--ok)}
+.review .ra b{color:var(--ok);font-weight:700;white-space:nowrap;font-size:12px;letter-spacing:.04em;text-transform:uppercase}
+.review .ra span{color:var(--ink);font-weight:500}
+.review pre{background:var(--surface);border:1px solid var(--line);border-radius:5px;padding:8px 10px;overflow-x:auto;font-size:12px}
 .review ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:3px}
 .review-banner{display:none;position:sticky;top:calc(env(safe-area-inset-top,0px) + 54px);z-index:30;background:var(--info);color:#fff;padding:6px 16px;font-size:12.5px;font-weight:600;letter-spacing:.04em;text-align:center}
 body.review-on .review-banner{display:block}
@@ -548,6 +552,7 @@ pre{margin:0;font-family:var(--mono);font-size:12.5px;line-height:1.5;white-spac
               <button class="btn btn-sm btn-ghost" id="mockReset">Вернуть реальный ответ</button>
             </div>
             <div id="mockVerdict"></div>
+            <div id="mockReview"></div>
           </div>
           <div class="api-pane">
             <div class="pane-h">ЛК клиента «Северторг» — рендерится из ответа слева</div>
@@ -630,6 +635,7 @@ pre{margin:0;font-family:var(--mono);font-size:12.5px;line-height:1.5;white-spac
         <div class="stmts" id="aiStmts"></div>
         <div id="aiVerdict"></div>
         <div class="task-foot"><button class="btn btn-primary btn-sm" id="aiCheck">Проверить разбор</button></div>
+        <div id="aiReview"></div>
         <hr class="hr">
         <div class="tasks" data-block="ai"></div>
       </div>
@@ -1082,6 +1088,8 @@ sql: [
   sub:'Подсказка по данным: created_at — строка вида «2026-09-16 09:05:00».',
   seed:'SELECT o.id, c.name, o.amount, o.created_at\nFROM orders o\nJOIN companies c ON c.id = o.company_id\nWHERE ...',
   expect:[[4468,4470,4471,4474,4477,4479]], rows:6,
+  right:'6 заказов: 4468, 4470, 4471, 4474, 4477, 4479',
+  sqlRef:"SELECT o.id, c.name, o.amount, o.created_at\nFROM orders o\nJOIN companies c ON c.id = o.company_id\nWHERE o.status = 'awaiting_sign'\n  AND o.created_at < '2026-09-16 10:30:00'",
   model:'6 заказов: 4468, 4470, 4471, 4474, 4477, 4479. Ловушка — заказ 4483 создан сегодня в 09:40, под «более 24 часов» не попадает.',
   probe:['Заказ 4483 у тебя попал в выборку? Почему нет?','Как бы ты написал это условие, если бы «сейчас» брали из БД, а не хардкодом?']},
 
@@ -1089,6 +1097,8 @@ sql: [
   q:'Найди дубликаты: external_id документов, по которым в таблице documents больше одной записи. Выведи external_id и количество.',
   seed:'SELECT ...\nFROM documents\nGROUP BY ...',
   expect:[['ETRN-4471-01','ETRN-4470-01']], rows:2,
+  right:'ETRN-4471-01 — 3 записи, ETRN-4470-01 — 2 записи',
+  sqlRef:"SELECT external_id, COUNT(*) AS cnt\nFROM documents\nGROUP BY external_id\nHAVING COUNT(*) > 1",
   model:'ETRN-4471-01 — 3 записи, ETRN-4470-01 — 2. Значит, дубли не разовый сбой, а повторяющийся сценарий.',
   probe:['Это баг данных или баг кода? Кто должен был не дать создать второй документ?','Как ты покажешь это разработчику одним запросом в тикете?']},
 
@@ -1097,6 +1107,8 @@ sql: [
   sub:'Это тот запрос, который объяснит разработчику масштаб инцидента.',
   seed:'SELECT c.id, c.name, c.vat_rate, COUNT(*) AS stuck\nFROM orders o\n...',
   expect:[[1,6,7],['Северторг','Волга-Транс','Северторг-Юг']], rows:3,
+  right:'Северторг — 3, Волга-Транс — 2, Северторг-Юг — 1; у всех троих vat_rate = NULL',
+  sqlRef:"SELECT c.name, c.vat_rate, COUNT(DISTINCT o.id) AS stuck\nFROM orders o\nJOIN companies c ON c.id = o.company_id\nWHERE EXISTS (SELECT 1 FROM trips t JOIN documents d ON d.trip_id = t.id\n              WHERE t.order_id = o.id AND d.status = 'signed')\n  AND NOT EXISTS (SELECT 1 FROM invoices i WHERE i.order_id = o.id)\nGROUP BY c.name, c.vat_rate",
   model:'Северторг (3), Волга-Транс (2), Северторг-Юг (1) — и у всех трёх vat_rate = NULL. Это и есть корреляция, ради которой писался запрос. Спрятанная ловушка: JOIN documents размножает строки дубликатами, и COUNT(*) даст 5 и 3 вместо 3 и 2 — нужен COUNT(DISTINCT o.id) либо EXISTS вместо JOIN.',
   probe:['Что общего у этих трёх компаний?','Сколько у тебя получилось по «Северторгу» — 3 или 5? Откуда лишние строки? (дубликаты документов)','Почему LEFT JOIN invoices с условием в WHERE даёт не тот результат, что в ON?','Сколько застрявших заказов именно у компании «Северторг» — 3 или 4? LIKE «%Северторг%» поймает и «Северторг-Юг»']}
 ],
@@ -1110,12 +1122,14 @@ api: [
     return un && ok;
   },
   needText:'в журнале должен появиться ответ 401 и успешный GET /v1/orders/4471',
+  right:'401 без заголовка Authorization и 200 с ним; в теле status=awaiting_sign, invoiceId=null, documentsCount=3',
   model:'401 без токена (с заголовком WWW-Authenticate), 200 с токеном. В теле: status=awaiting_sign, invoiceId=null, documentsCount=3.',
   probe:['Что в ответе 401 подсказывает, как именно авторизоваться?','Ты заметил documentsCount=3? Что это значит?']},
 
  {id:'a2', type:'short', pts:4,
   q:'Какое поле справочника компании не даёт собрать счёт? Напиши название поля.',
   accept:[/vat/i, /ндс/i], ph:'например: some_field',
+  right:'vat_rate (в API — vatRate) у компании 1 «Северторг»',
   model:'vat_rate (в API — vatRate) у компании 1. Видно из 422 на POST /v1/invoices и из GET /v1/companies/1.',
   probe:['Каким одним запросом ты это доказал?','Кто владелец этого поля и почему PATCH вернул 403?']},
 
@@ -1127,7 +1141,7 @@ api: [
 
  {id:'a4', type:'num', pts:3,
   q:'Сколько документов реально создано по рейсу 5471? (проверь через API)',
-  ans:3, tol:0,
+  ans:3, tol:0, right:'3 документа с одним и тем же external_id ETRN-4471-01',
   model:'3 документа с одинаковым external_id ETRN-4471-01 — следствие трёх ретраев клиента без Idempotency-Key.',
   probe:['Каким эндпоинтом ты это увидел, если его нет в документации?']},
 
@@ -1141,6 +1155,7 @@ logs: [
  {id:'l1', type:'short', pts:3,
   q:'trace_id первого (успешного) запроса на подпись рейса 5471:',
   accept:[/7f3a1c6b9d2e4a55/i], ph:'скопируй из логов', mono:true,
+  right:'7f3a1c6b9d2e4a55',
   model:'7f3a1c6b9d2e4a55 — он же тянется до ошибки в billing-consumer, это и есть сквозная цепочка.',
   probe:['У ретраев клиента trace_id другой. Почему так и чем это мешает разбору?']},
 
@@ -1150,11 +1165,12 @@ logs: [
   model:'billing-consumer: «failed to build invoice: vat_rate is null for company_id=1».',
   probe:['А кто виноват: billing-consumer, который упал, или тот, кто пустил компанию без ставки НДС?']},
 
- {id:'l3', type:'num', pts:2, q:'Сколько попыток обработки сделал консьюмер, прежде чем увести сообщение в DLQ?', ans:5, tol:0,
+ {id:'l3', type:'num', pts:2, q:'Сколько попыток обработки сделал консьюмер, прежде чем увести сообщение в DLQ?', ans:5, tol:0, right:'5 попыток (бэкофф 2, 4, 8, 16 с), затем DLQ',
   model:'5 попыток с растущим бэкоффом (2, 4, 8, 16 c), затем DLQ.',
   probe:['Сколько суммарно времени он держал партицию? Как это связано с лагом?']},
 
  {id:'l4', type:'short', pts:3, q:'Offset первого сообщения, ушедшего в DLQ:', accept:[/88214/], ph:'число', mono:true,
+  right:'88214 (партиция 2; следом ушли 88215 и 88216)',
   model:'88214 (партиция 2). Следом ушли 88215 и 88216 — по одному на каждый дубликат документа.',
   probe:['Почему в DLQ оказалось ровно 3 сообщения?']},
 
@@ -1285,11 +1301,13 @@ git: [
 est: [
  {id:'e1', type:'num', pts:4,
   q:'Итоговая оценка E по трём подзадачам (PERT), часы:', ans:19.5, tol:0.7, ph:'19.5',
+  right:'19,5 ч = 4,33 + 5,83 + 9,33 (засчитывается 18,8–20,2)',
   model:'E = 4.33 + 5.83 + 9.33 = 19.5 ч. Оценки складываются напрямую.',
   probe:['Что в этих 19,5 часах — твоё время, а что ожидание чужого?']},
 
  {id:'e2', type:'num', pts:5,
   q:'Оценка с запасом «уложусь почти наверняка» (E + 2σ), часы:', ans:25.9, tol:1.5, ph:'25.9',
+  right:'≈25,9 ч: σ = √(1² + 1,5² + 2,67²) ≈ 3,2, значит E + 2σ = 19,5 + 6,4',
   model:'σ по подзадачам 1.0 / 1.5 / 2.67. Складываются не сигмы, а дисперсии: σ = √(1 + 2.25 + 7.11) ≈ 3.2. E + 2σ ≈ 25.9 ч. Типичная ошибка — сложить сигмы (5.17) и получить ~29.8.',
   probe:['Почему сигмы нельзя складывать напрямую?']},
 
@@ -1350,6 +1368,7 @@ const AI_STATEMENTS = [
  {t:'Корневая причина — vat_rate = NULL у компании 1: billing-consumer не может собрать счёт и после пяти попыток уводит сообщение в DLQ.', bad:false},
  {t:'Чтобы починить быстро, выполните на проде UPDATE companies SET vat_rate = 20 WHERE id = 1 — это безопасно и обратимо.', bad:true}
 ];
+const AI_RIGHT = 'Неверные утверждения: 1, 2, 4 и 6. Верные: 3 и 5.';
 const AI_MODEL = 'Неверные: 1 (другой trace_id и другое время — ложный след), 2 (offset закоммичен, DLQ — отдельный топик), 4 (в пределах партиции порядок гарантирован), 6 (UPDATE на проде мимо владельца данных и без миграции — и «обратимо» здесь неправда). Верные: 3 и 5.';
 
 const EST_ROWS = [
@@ -1425,9 +1444,20 @@ function hasAnswer(id){
 }
 
 /* ---------- рендер заданий ---------- */
+function rightAnswer(t){
+  if(t.right) return t.right;
+  if(t.type==='choice') return t.opts[t.ans];
+  if(t.type==='multi') return t.ans.map(function(i){return t.opts[i];}).join('  ·  ');
+  if(t.type==='num') return String(t.ans) + (t.tol ? ' (засчитывается ±'+t.tol+')' : '');
+  if(t.type==='journal') return t.needText;
+  return '';
+}
 function reviewHtml(t){
-  if(!t.model && !t.probe) return '';
+  if(!t.model && !t.probe && !t.sqlRef) return '';
+  const ra = rightAnswer(t);
   return '<div class="review"><div class="rh">Эталон и добивка</div>'+
+    (ra? '<div class="ra"><b>Правильный ответ</b><span>'+esc(ra)+'</span></div>':'')+
+    (t.sqlRef? '<div><b>Эталонный запрос</b> <span style="color:var(--ink-2)">(любой запрос с тем же результатом засчитывается)</span></div><pre>'+esc(t.sqlRef)+'</pre>':'')+
     (t.model? '<div>'+esc(t.model)+'</div>':'')+
     (t.probe? '<ul>'+t.probe.map(function(p){return '<li>'+esc(p)+'</li>';}).join('')+'</ul>':'')+
     '</div>';
@@ -1948,6 +1978,22 @@ function checkAi(){
   save(); updateScore();
 }
 
+/* ---------- эталоны для двух практических блоков ---------- */
+const MOCK_REF = '{\n  "id": 4471,\n  "companyId": 1,\n  "status": "invoiced",\n  "statusTitle": "Счёт выставлен",\n  "amount": 148500,\n  "currency": "RUB",\n  "invoiceId": 7999,\n  "documentsCount": 3\n}';
+function renderStaticReviews(){
+  $('#aiReview').innerHTML = '<div class="review"><div class="rh">Эталон и добивка</div>'+
+    '<div class="ra"><b>Правильный ответ</b><span>'+esc(AI_RIGHT)+'</span></div>'+
+    '<div>'+esc(AI_MODEL)+'</div>'+
+    '<ul><li>Какое из утверждений он бы понёс разработчику не задумываясь — и почему это опасно?</li>'+
+    '<li>Как он проверял бы утверждение №6 про UPDATE на проде, если бы не знал ответа?</li></ul></div>';
+  $('#mockReview').innerHTML = '<div class="review"><div class="rh">Эталон и добивка</div>'+
+    '<div class="ra"><b>Правильный ответ</b><span>status = invoiced, непустой invoiceId, amount = 148500; statusTitle — «Счёт выставлен»</span></div>'+
+    '<div>Засчитывается любой JSON с этими полями — проверяется результат в ЛК, а не текст подмены.</div>'+
+    '<pre>'+esc(MOCK_REF)+'</pre>'+
+    '<ul><li>Чем такая подмена помогает разработчику больше, чем словами описанный ожидаемый результат?</li>'+
+    '<li>Что эта проверка НЕ доказывает? (что бэкенд отдаст ровно такой ответ)</li></ul></div>';
+}
+
 /* ============================================================
    ИНИЦИАЛИЗАЦИЯ И СОБЫТИЯ
    ============================================================ */
@@ -1962,6 +2008,7 @@ renderParts();
 renderCases();
 renderEst(false);
 renderAi();
+renderStaticReviews();
 $('#gitLog').textContent = GIT_LOG;
 $('#mockJson').value = S.mock || realOrderJson();
 try { renderLK(JSON.parse($('#mockJson').value)); } catch(e){ renderLK(JSON.parse(realOrderJson())); }
