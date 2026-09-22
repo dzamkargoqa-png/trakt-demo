@@ -326,7 +326,6 @@ body.review-on .quest-row .why{display:block}
       <button class="btn btn-sm btn-ghost" id="timerReset" title="Сбросить таймер" aria-label="Сбросить таймер">↺</button>
     </div>
     <button class="btn btn-sm" id="exportBtn" title="Собрать отчёт: ответы, вердикты, журнал API и SQL">Выгрузить ответы</button>
-    <button class="btn btn-sm btn-ghost" id="runMode" title="Короткий прогон: на экране только ядро заданий. Полный — все, включая необязательные.">Короткий прогон</button>
     <button class="btn btn-sm btn-ghost" id="resetTop" title="Сбросить прогресс: ответы, баллы, журнал запросов и тест-кейсы. Таймер не трогает.">Сбросить прогресс</button>
     <button class="btn btn-sm btn-ghost" id="reviewBtn" title="Эталоны и вопросы на добивку. Не показывать кандидату.">Режим интервьюера</button>
   </div>
@@ -422,7 +421,7 @@ body.review-on .quest-row .why{display:block}
         <ul class="tight">
           <li><strong>Рассуждай вслух.</strong> Оценивается ход мысли, а не только попадание в ответ.</li>
           <li><strong>Всё сохраняется</strong> в браузере само; кнопка «Выгрузить ответы» наверху соберёт отчёт для разбора.</li>
-          <li><strong>Не успеть всё — нормально, так и задумано.</strong> Включён короткий прогон: необязательные задания скрыты. Даже в нём на всё уйдёт около часа, поэтому ядро — блоки <b>02 SQL, 03 API, 04 Логи, 05 Очереди</b> (~28 минут), остальное берём по остатку времени. Кнопка «Короткий прогон» в шапке открывает полный список.</li>
+          <li><strong>Не успеть всё — нормально.</strong> Ядро — блоки <b>02 SQL, 03 API, 04 Логи, 05 Очереди</b> (~28 минут), остальное берём по остатку времени.</li>
         </ul>
       </div>
     </section>
@@ -435,7 +434,7 @@ body.review-on .quest-row .why{display:block}
           <h2>Разминка: HTTP</h2>
           <p class="sub">Быстрые вопросы по кодам и методам — на тех ситуациях, которые встретятся дальше в задании.</p>
         </div>
-        <div class="sec-meta"><span class="chip time" data-short="3" data-full="4">3 мин</span><span class="chip pts" data-pts="http">0 б</span></div>
+        <div class="sec-meta"><span class="chip time" data-short="3">3 мин</span><span class="chip pts" data-pts="http">0 б</span></div>
       </div>
       <div class="sec-b">
         <div class="tasks" data-block="http"></div>
@@ -451,7 +450,7 @@ body.review-on .quest-row .why{display:block}
           <h2>SQL: найти следы инцидента в базе</h2>
           <p class="sub">Реальный SQL-движок в браузере. Пиши запрос, жми «Выполнить» — увидишь настоящий результат. Проверяется результат, а не текст запроса.</p>
         </div>
-        <div class="sec-meta"><span class="chip time" data-short="8" data-full="12">8 мин</span><span class="chip pts" data-pts="sql">0 б</span></div>
+        <div class="sec-meta"><span class="chip time" data-short="8">8 мин</span><span class="chip pts" data-pts="sql">0 б</span></div>
       </div>
       <div class="sec-b">
         <div class="schema" id="schema"></div>
@@ -468,7 +467,7 @@ body.review-on .quest-row .why{display:block}
           <h2>API: разобраться запросами</h2>
           <p class="sub">Живая консоль к стенду Тракта. Отвечает настоящий мок: коды, заголовки, тела ответов — как у боевого сервиса.</p>
         </div>
-        <div class="sec-meta"><span class="chip time" data-short="8" data-full="12">8 мин</span><span class="chip pts" data-pts="api">0 б</span></div>
+        <div class="sec-meta"><span class="chip time" data-short="8">8 мин</span><span class="chip pts" data-pts="api">0 б</span></div>
       </div>
       <div class="sec-b">
         <div class="api">
@@ -511,7 +510,7 @@ body.review-on .quest-row .why{display:block}
           <h2>Логи: найти корень в потоке</h2>
           <p class="sub">Выгрузка из Loki за 16.09, 10:12–10:35. Фильтр ищет подстроку по всей строке, чипы сужают по сервису и уровню.</p>
         </div>
-        <div class="sec-meta"><span class="chip time" data-short="7" data-full="10">7 мин</span><span class="chip pts" data-pts="logs">0 б</span></div>
+        <div class="sec-meta"><span class="chip time" data-short="7">7 мин</span><span class="chip pts" data-pts="logs">0 б</span></div>
       </div>
       <div class="sec-b">
         <div class="logbar">
@@ -533,7 +532,7 @@ body.review-on .quest-row .why{display:block}
           <h2>Очереди: Kafka и RabbitMQ</h2>
           <p class="sub">Снимок состояния топика <code>trip.signed.v1</code> на момент инцидента. Ключ партиционирования — <code>company_id</code>.</p>
         </div>
-        <div class="sec-meta"><span class="chip time" data-short="5" data-full="8">5 мин</span><span class="chip pts" data-pts="mq">0 б</span></div>
+        <div class="sec-meta"><span class="chip time" data-short="5">5 мин</span><span class="chip pts" data-pts="mq">0 б</span></div>
       </div>
       <div class="sec-b">
         <div class="tw">
@@ -556,7 +555,7 @@ body.review-on .quest-row .why{display:block}
           <h2>Подмена трафика</h2>
           <p class="sub">Разработчик спрашивает: «а как экран должен выглядеть после фикса?» Собери это подменой ответа, не дожидаясь бэкенда.</p>
         </div>
-        <div class="sec-meta"><span class="chip time" data-short="4" data-full="7">4 мин</span><span class="chip pts" data-pts="proxy">0 б</span></div>
+        <div class="sec-meta"><span class="chip time" data-short="4">4 мин</span><span class="chip pts" data-pts="proxy">0 б</span></div>
       </div>
       <div class="sec-b">
         <div class="api">
@@ -588,7 +587,7 @@ body.review-on .quest-row .why{display:block}
           <h2>Тест-дизайн: кейсы на фикс</h2>
           <p class="sub">Фикс: <code>billing-consumer</code> перестаёт падать на пустой ставке НДС, а <code>POST /sign</code> получает ключ идемпотентности. Проверяется не количество кейсов, а покрытие рисков.</p>
         </div>
-        <div class="sec-meta"><span class="chip time" data-short="7" data-full="10">7 мин</span><span class="chip pts" data-pts="cases">ручная оценка</span></div>
+        <div class="sec-meta"><span class="chip time" data-short="7">7 мин</span><span class="chip pts" data-pts="cases">ручная оценка</span></div>
       </div>
       <div class="sec-b">
         <div class="tasks" data-block="cases"></div>
@@ -604,7 +603,7 @@ body.review-on .quest-row .why{display:block}
           <h2>Git: фикс едет на прод</h2>
           <p class="sub">В репозитории <code>trakt-billing</code> ветки <code>main</code>, <code>develop</code>, <code>release/1.12</code>. На проде сейчас тег <code>v1.12.3</code>.</p>
         </div>
-        <div class="sec-meta"><span class="chip time" data-short="4" data-full="6">4 мин</span><span class="chip pts" data-pts="git">0 б</span></div>
+        <div class="sec-meta"><span class="chip time" data-short="4">4 мин</span><span class="chip pts" data-pts="git">0 б</span></div>
       </div>
       <div class="sec-b">
         <div class="tw"><pre id="gitLog" style="padding:12px 14px"></pre></div>
@@ -621,7 +620,7 @@ body.review-on .quest-row .why{display:block}
           <h2>Оценка: сколько стоит проверить фикс</h2>
           <p class="sub">ПМ просит цифру к вечеру. Прикинь три точки по каждой подзадаче — сколько выйдет, если всё гладко, сколько скорее всего и сколько если не повезёт, — и защити итог.</p>
         </div>
-        <div class="sec-meta"><span class="chip time" data-short="5" data-full="7">5 мин</span><span class="chip pts" data-pts="est">0 б</span></div>
+        <div class="sec-meta"><span class="chip time" data-short="5">5 мин</span><span class="chip pts" data-pts="est">0 б</span></div>
       </div>
       <div class="sec-b">
         <div class="est tw">
@@ -646,7 +645,7 @@ body.review-on .quest-row .why{display:block}
           <h2>Работа с ИИ</h2>
           <p class="sub">ИИ здесь разрешён везде. Оценивается не факт использования, а умение сформулировать запрос и проверить ответ.</p>
         </div>
-        <div class="sec-meta"><span class="chip time" data-short="4" data-full="8">4 мин</span><span class="chip pts" data-pts="ai">0 б</span></div>
+        <div class="sec-meta"><span class="chip time" data-short="4">4 мин</span><span class="chip pts" data-pts="ai">0 б</span></div>
       </div>
       <div class="sec-b">
         <div class="tasks" data-block="ai"></div>
@@ -669,14 +668,6 @@ body.review-on .quest-row .why{display:block}
         <div class="task-foot">
           <button class="btn btn-primary" id="exportBtn2">Собрать отчёт</button>
           <button class="btn btn-ghost btn-sm" id="resetBtn">Сбросить прогресс перед следующим кандидатом</button>
-        </div>
-        <div class="review">
-          <div class="rh">Как читать результат</div>
-          <ul>
-            <li><b>60–100 автобаллов</b> — уверенный middle+/senior по хардам; дальше смотри качество формулировок в текстовых ответах.</li>
-            <li><b>Красные флаги:</b> лезет в БД раньше логов и API; «поправим данные в проде руками» без слова «миграция/владелец данных»; в тест-кейсах только позитивные сценарии; оценка одной цифрой без вопроса «что входит в задачу».</li>
-            <li><b>Зелёные флаги:</b> сам заметил дубли документов; спросил, кто владелец поля <code>vat_rate</code>; в оценке отделил «моё время» от «времени ожидания»; ИИ использовал, но перепроверил по логам.</li>
-          </ul>
         </div>
       </div>
     </section>
@@ -1462,7 +1453,7 @@ function save(){
 }
 
 const QUEST_MAX = API_QUEST.reduce(function(a,q){return a+q.pts;}, 0);
-function inRun(t){ return !(t.opt && S.shortRun !== false); }
+function inRun(t){ return !t.opt; }
 function maxPts(block){ return (TASKS[block]||[]).reduce(function(a,t){return a + (inRun(t)?(t.pts||0):0);},0)
   + (block==='proxy'?6:0) + (block==='api'?QUEST_MAX:0); }
 function earnedPts(block){
@@ -1688,7 +1679,7 @@ function buildReport(){
   L.push('');
   L.push('Дата разбора: ' + new Date().toLocaleString('ru-RU'));
   let tot=0, max=0; Object.keys(TASKS).forEach(function(b){tot+=earnedPts(b);max+=maxPts(b);});
-  L.push('Автобаллы: **' + tot + ' / ' + max + '**' + (S.shortRun===false ? ' (полный прогон)' : ' (короткий прогон — необязательные задания скрыты)'));
+  L.push('Автобаллы: **' + tot + ' / ' + max + '**');
   L.push('');
   SECTIONS.forEach(function(s){
     const list = TASKS[s.id]; if(!list) return;
@@ -2180,22 +2171,15 @@ $('#resetBtn').onclick = resetProgress;
 $('#resetTop').onclick = resetProgress;
 $('#timerBtn').textContent = S.timer.on ? 'Пауза' : 'Старт';
 
-/* ---------- короткий / полный прогон ---------- */
+/* ---------- короткий прогон: необязательные задания скрыты всегда ---------- */
 function applyRunMode(){
-  const short = S.shortRun !== false;
-  document.body.classList.toggle('short-run', short);
-  $('#runMode').textContent = short ? 'Короткий прогон' : 'Полный прогон';
-  $('#runMode').classList.toggle('btn-ghost', short);
+  document.body.classList.add('short-run');
   $$('.chip.time').forEach(function(c){
-    const v = short ? c.getAttribute('data-short') : c.getAttribute('data-full');
+    const v = c.getAttribute('data-short');
     if(v) c.textContent = v + ' мин';
   });
   updateScore();
 }
-$('#runMode').onclick = function(){
-  S.shortRun = (S.shortRun === false);
-  save(); applyRunMode();
-};
 applyRunMode();
 
 spyInit();
