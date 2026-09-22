@@ -320,7 +320,6 @@ body.review-on .quest-row .why{display:block}
     </div>
     <button class="btn btn-sm" id="exportBtn" title="Собрать отчёт: ответы, вердикты, журнал API и SQL">Выгрузить ответы</button>
     <button class="btn btn-sm btn-ghost" id="resetTop" title="Сбросить прогресс: ответы, баллы, журнал запросов и тест-кейсы. Таймер не трогает.">Сбросить прогресс</button>
-    <button class="btn btn-sm btn-ghost" id="reviewBtn" title="Эталоны и вопросы на добивку. Не показывать кандидату.">Режим интервьюера</button>
   </div>
 </div>
 <div class="review-banner">Режим интервьюера включён — на экране видны эталоны ответов и вопросы на добивку</div>
@@ -1596,8 +1595,6 @@ setInterval(tickTimer, 1000);
 /* ---------- режим интервьюера ---------- */
 function setReview(on){
   document.body.classList.toggle('review-on', on);
-  $('#reviewBtn').textContent = on ? 'Скрыть эталоны' : 'Режим интервьюера';
-  if(on) location.hash = location.hash || '';
 }
 
 /* ---------- отчёт ---------- */
@@ -1962,7 +1959,6 @@ Object.keys(TASKS_INDEX).forEach(function(id){
 if(S.mock) applyMock();
 
 paintTimer();
-if(/review/i.test(location.hash)) setReview(true);
 
 document.addEventListener('click', function(e){
   const el = e.target.closest ? e.target.closest('[data-check],[data-sql],[data-svc],[data-lvl],[data-delcase],[data-j]') : null;
@@ -2011,15 +2007,51 @@ $('#mockReset').onclick = function(){ $('#mockJson').value = realOrderJson(); ap
 $('#caseAdd').onclick = function(){ S.cases.push(['','']); renderCases(); save(); };
 $('#exportBtn').onclick = openReport;
 $('#exportBtn2').onclick = openReport;
-$('#reviewBtn').onclick = function(){
-  const on = !document.body.classList.contains('review-on');
+/* ---------- скрытый вход в режим интервьюера ----------
+   Кнопки в интерфейсе нет. Три способа включить, все переключают туда-обратно:
+     1) хвост #review в адресе страницы;
+     2) клавиши Q A Q A подряд (по физическим клавишам, раскладка не важна) — вне полей ввода;
+     3) пять кликов по оранжевой букве «а» в логотипе «Тракт» за пару секунд.
+   Признак включения — синяя полоса под шапкой.                                   */
+function toggleReview(force){
+  const on = (force === undefined) ? !document.body.classList.contains('review-on') : force;
   setReview(on);
   renderQuest();
   Object.keys(TASKS_INDEX).forEach(function(id){
     const t = TASKS_INDEX[id];
     if((t.type==='choice'||t.type==='multi') && S.earned[id]!==undefined) paintVerdict(t, checkTask(t));
   });
-};
+}
+
+const REVIEW_SEQ = ['KeyQ','KeyA','KeyQ','KeyA'];
+let seqPos = 0, seqAt = 0;
+document.addEventListener('keydown', function(e){
+  const el = e.target, tag = el && el.tagName;
+  if(tag==='INPUT' || tag==='TEXTAREA' || tag==='SELECT' || (el && el.isContentEditable)) return;
+  if(e.metaKey || e.ctrlKey || e.altKey) return;
+  const now = Date.now();
+  if(now - seqAt > 2000) seqPos = 0;
+  seqAt = now;
+  if(e.code === REVIEW_SEQ[seqPos]){
+    seqPos++;
+    if(seqPos === REVIEW_SEQ.length){ seqPos = 0; toggleReview(); }
+  } else {
+    seqPos = (e.code === REVIEW_SEQ[0]) ? 1 : 0;
+  }
+});
+
+const logoSpot = document.querySelector('.brand-mark span');
+if(logoSpot){
+  let hits = 0, hitAt = 0;
+  logoSpot.addEventListener('click', function(){
+    const now = Date.now();
+    hits = (now - hitAt > 2000) ? 1 : hits + 1;
+    hitAt = now;
+    if(hits >= 5){ hits = 0; toggleReview(); }
+  });
+}
+
+if(/review/i.test(location.hash)) toggleReview(true);
 if(!S.timer.total) S.timer.total = 45*60;
 function resetTimer(sec){
   S.timer.total = sec || S.timer.total || 45*60;
