@@ -265,13 +265,6 @@ body.review-on .quest-row .why{display:block}
 .case-row .del{border:1px solid var(--line);background:var(--surface);color:var(--ink-3);border-radius:5px;cursor:pointer;height:32px;margin-top:3px}
 .case-head{display:grid;grid-template-columns:28px minmax(0,1fr) minmax(0,1fr) 30px;gap:8px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
 
-/* ---------- estimate ---------- */
-.est{overflow-x:auto}
-.est table{font-family:var(--mono)}
-.est input{width:74px;padding:4px 6px;font-family:var(--mono);text-align:right}
-.est td{white-space:nowrap}
-.est .calc{color:var(--accent);font-weight:600}
-
 /* ---------- ai statements ---------- */
 .stmts{display:flex;flex-direction:column;gap:6px}
 .stmt{display:flex;gap:10px;padding:9px 12px;border:1px solid var(--line);border-radius:6px;background:var(--surface);cursor:pointer;font-size:14px}
@@ -612,35 +605,10 @@ body.review-on .quest-row .why{display:block}
       </div>
     </section>
 
-    <!-- 09 ESTIMATE -->
-    <section class="sec" id="est">
-      <div class="sec-h">
-        <span class="idx">09</span>
-        <div>
-          <h2>Оценка: сколько стоит проверить фикс</h2>
-          <p class="sub">ПМ просит цифру к вечеру. Прикинь три точки по каждой подзадаче — сколько выйдет, если всё гладко, сколько скорее всего и сколько если не повезёт, — и защити итог.</p>
-        </div>
-        <div class="sec-meta"><span class="chip time" data-short="5">5 мин</span><span class="chip pts" data-pts="est">0 б</span></div>
-      </div>
-      <div class="sec-b">
-        <div class="est tw">
-          <table>
-            <thead><tr><th>Подзадача</th><th>Если всё гладко, ч</th><th>Скорее всего, ч</th><th>Если не повезёт, ч</th><th>Оценка, ч</th></tr></thead>
-            <tbody id="estRows"></tbody>
-            <tfoot><tr><th>Итого</th><th></th><th></th><th></th><th id="estE" class="calc"></th></tr></tfoot>
-          </table>
-        </div>
-        <div class="hintbox">Оценка в последней колонке считается сама: <code>(гладко + 4 × скорее всего + не повезёт) / 6</code> — середине веса больше, чем крайностям. Это и есть оценка по трём точкам. Цифры в таблице можно менять под себя.</div>
-        <div id="estReview"></div>
-        <div class="tasks" data-block="est"></div>
-        <div class="task-foot"><button class="btn btn-primary btn-sm" data-check="est">Проверить блок</button></div>
-      </div>
-    </section>
-
-    <!-- 10 AI -->
+    <!-- 09 AI -->
     <section class="sec" id="ai">
       <div class="sec-h">
-        <span class="idx">10</span>
+        <span class="idx">09</span>
         <div>
           <h2>Работа с ИИ</h2>
           <p class="sub">ИИ здесь разрешён везде. Оценивается не факт использования, а умение сформулировать запрос и проверить ответ.</p>
@@ -656,7 +624,7 @@ body.review-on .quest-row .why{display:block}
     <!-- DONE -->
     <section class="sec" id="done">
       <div class="sec-h">
-        <span class="idx">11</span>
+        <span class="idx">10</span>
         <div>
           <h2>Итог</h2>
           <p class="sub">Автобаллы считаются только по проверяемым заданиям. Блоки с текстом и тест-кейсами разбираем голосом.</p>
@@ -1331,43 +1299,6 @@ git: [
   probe:['Что сделаешь, если cherry-pick упал с конфликтом?']}
 ],
 
-est: [
- {id:'e1', type:'num', pts:4,
-  q:'Сколько получилось всего — сложи оценки по трём подзадачам, часов:',
-  sub:'Последняя колонка таблицы считается сама, её и складываем.',
-  ans:19.5, tol:0.7, ph:'19.5',
-  right:'19,5 ч = 4,3 + 5,8 + 9,3 (засчитывается 18,8–20,2)',
-  model:'Оценки подзадач складываются напрямую. Смысл вопроса не в арифметике, а в том, понимает ли кандидат, что в итоге лежит взвешенное среднее, а не «сколько успею».',
-  probe:['Что в этих 19,5 часах — твоё время, а что ожидание чужого (стенд, данные, разработчик)?','Что не вошло в эти три подзадачи?']},
-
- {id:'e2', type:'choice', pts:4,
-  q:'ПМ просит одну цифру. Если всё пойдёт не по плану, три подзадачи в худшем случае дают 8 + 12 + 20 = 40 часов. Что назовёшь?',
-  opts:['40 ч — это честный худший случай, лучше перестраховаться',
-        '19,5 ч — среднее и есть ответ, про риски ПМ не спрашивал',
-        'Около 25–26 ч: среднее плюс запас, потому что все три риска одновременно почти наверняка не выстрелят',
-        'Назову 19,5 ч, а если не уложусь — объясню потом'],
-  ans:2,
-  right:'≈25–26 ч: среднее плюс явно названный запас',
-  model:'Сумма худших случаев — не оценка, а страховка от всего сразу; назвав 40, кандидат обесценит свои оценки. Голое среднее без запаса — обещание, которое сбывается примерно в половине случаев. Правильная середина: среднее + буфер, и буфер назван вслух, а не спрятан внутри цифры.',
-  probe:['Откуда берётся размер запаса? (из разброса между «гладко» и «не повезёт»)','Что скажешь, если ПМ ответит «убери буфер, у нас сроки»?']},
-
- {id:'e3', type:'choice', pts:3,
-  q:'Планируем спринт: на фичу заложено 40 часов разработки. Сколько закладываешь на тестирование?',
-  opts:['10–15% — тестирование быстрее разработки','25–35%, и это оценка только для планирования спринта: на конкретной задаче считаем по составу работ','50% — правило «половина от разработки»','Нисколько: тестирование внутри оценки разработки'],
-  ans:1, model:'Процент — нормальный инструмент планирования на входе (обычно 25–35%), но он не заменяет разбор задачи. Ключевое в ответе — оговорка про область применимости.',
-  probe:['Когда процент врёт сильнее всего? (интеграции, миграции, чужой легаси)']},
-
- {id:'e4', opt:true, type:'free', pts:0, rows:2,
-  q:'Что попросишь у команды взамен названной цифры?',
-  model:'Ждём: зафиксировать допущения («19–20 ч при условии, что стенд с данными есть к утру; если нет — плюс день ожидания»), договориться, что делать при выходе за оценку, и кто принимает решение сокращать объём проверок.',
-  probe:['Что делаешь, когда оценка поехала на середине задачи — молчишь до конца или приходишь сразу?']},
-
- {id:'e5', opt:true, type:'free', pts:0, rows:2,
-  q:'Когда оценка «пальцем в небо» — законный метод, а когда халтура?',
-  model:'Ждём: экспертная оценка законна для грубого сравнения вариантов и когда цена ошибки мала; халтура — когда по ней берут обязательства перед клиентом или считают сроки релиза.',
-  probe:['Как повышаешь точность такой оценки? (аналогии с прошлыми задачами, декомпозиция, чужой опыт)']}
-],
-
 ai: [
  {id:'ai1', type:'multi', pts:6,
   q:'Агентные инструменты (Claude Code и подобные) настраивают хуками и скиллами. Что здесь верно?',
@@ -1414,12 +1345,6 @@ done: [
 ]
 };
 
-const EST_ROWS = [
-  {name:'Тест-дизайн и кейсы', o:2, m:4, p:8},
-  {name:'Проверка на стенде (вкл. переигрывание DLQ)', o:3, m:5, p:12},
-  {name:'Регресс смежных потоков', o:4, m:8, p:20}
-];
-
 /* ============================================================
    ДВИЖОК: состояние, рендер заданий, проверка, счёт
    ============================================================ */
@@ -1438,13 +1363,12 @@ const SECTIONS = [
   {id:'proxy', n:'06', t:'Подмена трафика'},
   {id:'cases', n:'07', t:'Тест-дизайн'},
   {id:'git',   n:'08', t:'Git'},
-  {id:'est',   n:'09', t:'Оценка'},
-  {id:'ai',    n:'10', t:'Работа с ИИ'},
-  {id:'done',  n:'11', t:'Итог'}
+  {id:'ai',    n:'09', t:'Работа с ИИ'},
+  {id:'done',  n:'10', t:'Итог'}
 ];
 
 const KEY = 'trakt-qa-stand-v1';
-let S = {answers:{}, earned:{}, journal:[], cases:[], est:{}, ai:[], mock:'', timer:{left:45*60, on:false}};
+let S = {answers:{}, earned:{}, journal:[], cases:[], ai:[], mock:'', timer:{left:45*60, on:false}};
 try { const raw = localStorage.getItem(KEY); if(raw) S = Object.assign(S, JSON.parse(raw)); } catch(e){}
 let saveT = null;
 function save(){
@@ -1987,37 +1911,6 @@ function renderCases(){
   $('#caseCount').textContent = 'заполнено кейсов: ' + filled + (filled<5 ? ' (ждём минимум 5)' : ' — достаточно');
 }
 
-/* ---------- ОЦЕНКА ---------- */
-function estVals(){
-  return EST_ROWS.map(function(r, i){
-    const saved = (S.est && S.est[i]) || {};
-    return {name:r.name, o:+(saved.o!==undefined?saved.o:r.o), m:+(saved.m!==undefined?saved.m:r.m), p:+(saved.p!==undefined?saved.p:r.p)};
-  });
-}
-function renderEst(reveal){
-  const rows = estVals();
-  let sumE = 0, sumVar = 0;
-  $('#estRows').innerHTML = rows.map(function(r, i){
-    const E = (r.o + 4*r.m + r.p)/6, sd = (r.p - r.o)/6;
-    sumE += E; sumVar += sd*sd;
-    return '<tr><td style="white-space:normal;font-family:var(--sans)">'+esc(r.name)+'</td>'+
-      ['o','m','p'].map(function(k){
-        return '<td><input type="text" inputmode="decimal" data-est="'+i+'" data-estk="'+k+'" value="'+r[k]+'"></td>';
-      }).join('')+
-      '<td class="calc">'+E.toFixed(1)+'</td></tr>';
-  }).join('');
-  const show = reveal || document.body.classList.contains('review-on');
-  $('#estE').textContent = show ? sumE.toFixed(1) : '?';
-  const sd = Math.sqrt(sumVar);
-  const er = $('#estReview');
-  if(er) er.innerHTML = '<div class="review"><div class="rh">Для интервьюера</div>'+
-    '<div class="ra"><b>Итого сейчас</b><span>'+sumE.toFixed(1)+' ч при текущих цифрах в таблице</span></div>'+
-    '<div>Если кандидат крепкий, есть куда копнуть: разброс по подзадачам ±'+
-    rows.map(function(r){return ((r.p-r.o)/6).toFixed(1);}).join(' / ')+' ч, а сложить их напрямую нельзя — складываются квадраты, и общий разброс выходит ±'+sd.toFixed(1)+
-    ' ч, а не ±'+rows.reduce(function(a,r){return a+(r.p-r.o)/6;},0).toFixed(1)+'. Отсюда «почти наверняка уложусь» ≈ '+(sumE+2*sd).toFixed(0)+' ч, а не 40 (сумма худших случаев).</div>'+
-    '<ul><li>Спроси это, только если кандидат сам заговорил про запас и вероятности — в требования блока это не входит.</li></ul></div>';
-}
-
 /* ---------- эталоны для двух практических блоков ---------- */
 const MOCK_REF = '{\n  "id": 4471,\n  "companyId": 1,\n  "status": "invoiced",\n  "statusTitle": "Счёт выставлен",\n  "amount": 148500,\n  "currency": "RUB",\n  "invoiceId": 7999,\n  "documentsCount": 3\n}';
 function renderStaticReviews(){
@@ -2042,7 +1935,6 @@ renderLogChips();
 renderLogs();
 renderParts();
 renderCases();
-renderEst(false);
 renderStaticReviews();
 $('#gitLog').textContent = GIT_LOG;
 $('#mockJson').value = S.mock || realOrderJson();
@@ -2074,7 +1966,6 @@ document.addEventListener('click', function(e){
   if(el.hasAttribute('data-check')){
     const b = el.getAttribute('data-check');
     checkBlock(b);
-    if(b==='est') renderEst(true);
   }
   else if(el.hasAttribute('data-sql')) runSql(el.getAttribute('data-sql'));
   else if(el.hasAttribute('data-svc')){
@@ -2106,17 +1997,6 @@ document.addEventListener('input', function(e){
     $('#caseCount').textContent = 'заполнено кейсов: ' + filled + (filled<5 ? ' (ждём минимум 5)' : ' — достаточно');
     save();
   }
-  if(el.hasAttribute && el.hasAttribute('data-est')){
-    const i = +el.getAttribute('data-est'), k = el.getAttribute('data-estk');
-    S.est = S.est || {}; S.est[i] = S.est[i] || {};
-    const num = parseFloat(String(el.value).replace(',','.'));
-    S.est[i][k] = isNaN(num) ? 0 : num;
-    save();
-    const pos = el.selectionStart;
-    renderEst(false);
-    const again = document.querySelector('[data-est="'+i+'"][data-estk="'+k+'"]');
-    if(again){ again.focus(); try{ again.setSelectionRange(pos,pos); }catch(err){} }
-  }
 });
 
 $('#apiSend').onclick = sendApi;
@@ -2130,7 +2010,6 @@ $('#exportBtn2').onclick = openReport;
 $('#reviewBtn').onclick = function(){
   const on = !document.body.classList.contains('review-on');
   setReview(on);
-  renderEst(false);
   renderQuest();
   Object.keys(TASKS_INDEX).forEach(function(id){
     const t = TASKS_INDEX[id];
@@ -2163,7 +2042,7 @@ function resetProgress(){
   const tot = $('#scoreNow').textContent;
   if(!confirm('Сбросить прогресс?\n\nСотрутся: ответы, баллы (' + tot + '), журнал API-запросов, SQL-запросы, тест-кейсы и разбор ответа ИИ.\nТаймер останется как есть — его сбрасывает кнопка ↺ рядом с ним.\n\nОтменить это нельзя: если отчёт ещё нужен, сначала нажми «Выгрузить ответы».')) return;
   const timer = S.timer;
-  S = {answers:{}, earned:{}, journal:[], cases:[], est:{}, ai:[], mock:'', timer:timer};
+  S = {answers:{}, earned:{}, journal:[], cases:[], ai:[], mock:'', timer:timer};
   try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){}
   location.reload();
 }
