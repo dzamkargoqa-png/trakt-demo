@@ -2132,12 +2132,14 @@ if(logoSpot){
 if(/review/i.test(location.hash)) toggleReview(true);
 
 /* ---------- автосбор результатов ----------
-   Адрес приёмника и метка кандидата берутся из ссылки, которую прислал интервьюер:
-     …/trakt-demo/?c=ivanov&api=https://xxxx.trycloudflare.com
-   Без хвоста api страница НЕ делает ни одного сетевого запроса и работает как раньше.
+   Адрес приёмника вшивается в страницу перед собеседованием: collector/arm.sh <адрес>
+   (пустая строка = страница не делает ни одного сетевого запроса).
+   Ссылка кандидату при этом чистая, без хвостов. Хвост ?api= остаётся только для отладки.
    Приёмник и инструкция — в collector/ рядом с исходниками.                                  */
+const ENDPOINT = 'https://reggae-rays-pierce-recent.trycloudflare.com';
 const COLLECT_URL = (function(){
-  const v = (new URLSearchParams(location.search).get('api') || '').trim();
+  const q = (new URLSearchParams(location.search).get('api') || '').trim();
+  const v = q || ENDPOINT;
   return /^https?:\/\/[^\s"'<>]+$/.test(v) ? v.replace(/\/+$/, '') + '/collect' : '';
 })();
 
