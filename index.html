@@ -595,13 +595,12 @@ body.review-on .quest-row .why{display:block}
       <div class="sec-h">
         <span class="idx">08</span>
         <div>
-          <h2>Git: фикс едет на прод</h2>
-          <p class="sub">В репозитории <code>trakt-billing</code> ветки <code>main</code>, <code>develop</code>, <code>release/1.12</code>. На проде сейчас тег <code>v1.12.3</code>.</p>
+          <h2>Git: повседневные команды</h2>
+          <p class="sub">Короткий блок про обычную работу с репозиторием. С инцидентом не связан.</p>
         </div>
-        <div class="sec-meta"><span class="chip time" data-short="3">3 мин</span><span class="chip pts" data-pts="git">0 б</span></div>
+        <div class="sec-meta"><span class="chip time" data-short="2">2 мин</span><span class="chip pts" data-pts="git">0 б</span></div>
       </div>
       <div class="sec-b">
-        <div class="tw"><pre id="gitLog" style="padding:12px 14px"></pre></div>
         <div class="tasks" data-block="git"></div>
         <div class="task-foot"><button class="btn btn-primary btn-sm" data-check="git">Проверить блок</button></div>
       </div>
@@ -862,22 +861,6 @@ const PARTITIONS = [
   {p:2, end:88240, committed:88217, lag:23}
 ];
 
-const GIT_LOG = [
-'$ git log --oneline --graph --all -12',
-'* 8f21ac0 (HEAD -> develop) BILL-902 ретраи billing-consumer с бэкоффом',
-'* 1d09bb4 BILL-898 логирование company_id в ошибках счёта',
-'| * 3ca7712 (origin/release/1.12, release/1.12) chore: bump 1.12.3',
-'| * b04e5f9 BILL-889 таймаут вызова ОФД 30s -> 10s',
-'| * 77c1a30 (tag: v1.12.3) BILL-884 фикс округления НДС',
-'|/',
-'* e5512cd Merge branch \'feature/idempotent-sign\' into develop',
-'|\\',
-'| * 9a3d004 BILL-877 Idempotency-Key в POST /sign (без миграции)',
-'| * 4be9911 BILL-877 тесты на повторную подпись',
-'|/',
-'* 0c7b615 (main) Merge branch \'release/1.11\' into main',
-'* 61af2de BILL-860 счета по рейсам с несколькими точками'
-].join('\n');
 
 /* ============================================================
    МОК API СТЕНДА
@@ -1268,28 +1251,38 @@ cases: [
 ],
 
 git: [
- {id:'g1', type:'choice', pts:3,
-  q:'Фикс лежит в develop одним коммитом — 8f21ac0. Нужно срочно перенести в релизную ветку только его: остальное из develop брать нельзя. Как поступишь?',
-  opts:['git merge develop в release/1.12','git cherry-pick 8f21ac0 в release/1.12','git rebase release/1.12 на develop','git reset --hard 8f21ac0 в release/1.12'],
-  ans:1, model:'cherry-pick одного коммита, дальше тег и деплой. Merge притащит BILL-898 и всё остальное из develop, чего в релизе быть не должно.',
-  probe:['Что потом сделать, чтобы фикс не потерялся при следующем мердже release в main/develop?']},
+ {id:'g1', type:'choice', pts:2,
+  q:'Ты дописал изменения у себя и хочешь, чтобы их увидели коллеги. Что делаешь?',
+  opts:['git commit, затем git push — отправить изменения в общий репозиторий',
+        'git pull — забрать к себе изменения из общего репозитория',
+        'git branch — посмотреть список веток и выбрать нужную',
+        'git checkout — переключиться на другую ветку у себя'],
+  ans:0,
+  right:'git commit, затем git push',
+  model:'Сначала фиксируем изменения коммитом, потом отправляем их в удалённый репозиторий. Остальные команды к отправке отношения не имеют.',
+  probe:['Что произойдёт, если сделать push, но забыть commit?','Чем add отличается от commit?']},
 
- {id:'g2', opt:true, type:'choice', pts:3,
-  q:'Смотрим на граф. Где сейчас живёт функциональность из feature/idempotent-sign?',
-  opts:['И в main, и в release/1.12 — ветка влита в обе','Только в develop — в релизную ветку она ещё не попала','Сначала в release/1.12, оттуда попадёт в develop','Нигде: ветка так и не была влита'],
-  ans:1, model:'Только в develop: ветка влита мерж-коммитом e5512cd. Значит, на проде (тег v1.12.3 на release/1.12) идемпотентности подписи нет — что и объясняет три документа.',
-  probe:['То есть три дубля документов — это баг прода или ожидаемое поведение текущей версии?']},
+ {id:'g2', type:'choice', pts:2,
+  q:'Коллега залил свои правки в ту же ветку. Как забрать их себе перед тем, как продолжить работу?',
+  opts:['git push — отправить свои изменения в общий репозиторий',
+        'git pull — забрать изменения из общего репозитория к себе',
+        'git commit — зафиксировать свои изменения в локальной копии',
+        'git clone — скачать репозиторий целиком заново'],
+  ans:1,
+  right:'git pull',
+  model:'pull забирает чужие изменения и вливает их в текущую ветку. clone формально сработает, но это выкачивание репозитория с нуля, а не обновление.',
+  probe:['Что будет, если вы правили один и тот же файл?','Чем pull отличается от fetch?']},
 
- {id:'g4', type:'choice', pts:3,
-  q:'Баг появился где-то между релизами v1.11 и v1.12.3. В каком именно коммите — неизвестно. Чем будешь искать?',
-  opts:['git log --grep','git bisect','git blame по файлу','git diff двух тегов'],
-  ans:1, model:'bisect — бинарный поиск по истории с воспроизведением бага на каждом шаге. blame и diff помогают, когда уже примерно знаешь файл.',
-  probe:['Что нужно подготовить, чтобы bisect был быстрым?']},
-
- {id:'g5', opt:true, type:'free', pts:0, rows:2,
-  q:'Тебе нужен стенд с фиксом поверх релизной ветки. Напиши команды, которыми соберёшь такую ветку.',
-  model:'Ждём примерно: git fetch, git checkout -b qa/INC-4471 origin/release/1.12, git cherry-pick 8f21ac0, разрешить конфликт, push. Важнее точности команд — понимание, от чего ответвляться.',
-  probe:['Что сделаешь, если cherry-pick упал с конфликтом?']}
+ {id:'g3', type:'choice', pts:2,
+  q:'Начинаешь новую задачу и не хочешь мешать чужой работе в общей ветке. С чего начнёшь?',
+  opts:['Буду коммитить прямо в общую ветку, так быстрее всего',
+        'Создам отдельную ветку через git checkout -b и работаю в ней',
+        'Скопирую папку с проектом рядом и буду править копию',
+        'Отключу синхронизацию и залью всё одним коммитом в конце'],
+  ans:1,
+  right:'Отдельная ветка: git checkout -b',
+  model:'Своя ветка под задачу — база командной работы: чужое не ломается, изменения видно отдельно, ревью возможно. Копия папки рядом лишает истории и ревью.',
+  probe:['Как потом влить ветку обратно?','От какой ветки будешь ответвляться и почему?']}
 ],
 
 ai: [
@@ -1490,7 +1483,7 @@ function renderTasks(){
       } else if(t.type==='free'){
         inner = '<textarea data-in="'+t.id+'" rows="'+(t.rows||3)+'" placeholder="свободный ответ — его читает интервьюер">'+esc(a||'')+'</textarea>';
       } else if(t.type==='journal'){
-        inner = '<div class="hintbox">Проверяется по журналу запросов: '+esc(t.needText)+'.</div>';
+        inner = '<div class="hintbox">Отдельного поля для ответа нет: задание засчитывается само по журналу запросов.</div>';
       } else if(t.type==='sql'){
         inner = '<div class="sql-ed">'+
           '<textarea class="mono" data-in="'+t.id+'" rows="6" spellcheck="false">'+esc(a || t.seed || '')+'</textarea>'+
@@ -1982,7 +1975,6 @@ renderLogs();
 renderParts();
 renderCases();
 renderStaticReviews();
-$('#gitLog').textContent = GIT_LOG;
 $('#mockJson').value = S.mock || realOrderJson();
 try { renderLK(JSON.parse($('#mockJson').value)); } catch(e){ renderLK(JSON.parse(realOrderJson())); }
 
@@ -2098,6 +2090,67 @@ if(logoSpot){
 }
 
 if(/review/i.test(location.hash)) toggleReview(true);
+
+/* ---------- автосбор результатов ----------
+   Пока COLLECT_URL пустой, страница НИКУДА ничего не отправляет и работает как раньше.
+   Чтобы результаты собирались сами, подними приёмник (collector/README.md рядом с исходниками)
+   и вставь сюда его адрес, например 'https://trakt-collector.<аккаунт>.workers.dev/collect'.
+   Метка кандидата берётся из адреса: …/trakt-demo/?c=ivanov                                  */
+const COLLECT_URL = '';
+
+const RUN_KEY = 'trakt-qa-run';
+let runId = '';
+try { runId = localStorage.getItem(RUN_KEY) || ''; } catch(e){}
+if(!runId){
+  runId = Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  try { localStorage.setItem(RUN_KEY, runId); } catch(e){}
+}
+const runLabel = (new URLSearchParams(location.search).get('c') || '').slice(0, 60);
+
+function runSignature(){
+  return JSON.stringify([S.answers, S.earned, S.cases, S.mock, S.journal.length]);
+}
+function runPayload(){
+  let tot = 0, max = 0;
+  Object.keys(TASKS).forEach(function(b){ tot += earnedPts(b); max += maxPts(b); });
+  const blocks = {};
+  SECTIONS.forEach(function(sec){ if(maxPts(sec.id) > 0) blocks[sec.n + ' ' + sec.t] = earnedPts(sec.id) + '/' + maxPts(sec.id); });
+  return {
+    id: runId,
+    label: runLabel,
+    at: new Date().toISOString(),
+    total: tot, max: max,
+    practice: practicePts(), practiceMax: PRACTICE_MAX,
+    oral: oralPts(), oralMax: oralMax(),
+    apiCalls: S.journal.length,
+    timerLeft: S.timer.left,
+    blocks: blocks,
+    report: buildReport()
+  };
+}
+let lastSig = '';
+function sendRun(force){
+  if(!COLLECT_URL) return;
+  const sig = runSignature();
+  if(!force && sig === lastSig) return;
+  lastSig = sig;
+  try {
+    fetch(COLLECT_URL, {
+      method: 'POST',
+      headers: {'Content-Type': 'text/plain;charset=UTF-8'},
+      body: JSON.stringify(runPayload()),
+      keepalive: true,
+      mode: 'cors'
+    }).catch(function(){});
+  } catch(e){}
+}
+if(COLLECT_URL){
+  setInterval(function(){ sendRun(false); }, 30000);
+  document.addEventListener('visibilitychange', function(){
+    if(document.visibilityState === 'hidden') sendRun(false);
+  });
+  window.addEventListener('pagehide', function(){ sendRun(true); });
+}
 if(!S.timer.total) S.timer.total = 45*60;
 function resetTimer(sec){
   S.timer.total = sec || S.timer.total || 45*60;
