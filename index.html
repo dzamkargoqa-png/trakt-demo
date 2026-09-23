@@ -86,6 +86,8 @@ button{font-family:inherit;font-size:14px}
 @media (prefers-color-scheme: light){:root:not([data-theme="dark"]) .btn-primary{color:#fff}}
 .btn-primary:hover{background:var(--accent-2);border-color:var(--accent-2)}
 .btn-sm{padding:4px 9px;font-size:13px}
+.btn-ok{background:var(--ok);border-color:var(--ok);color:#fff}
+.btn-ok:hover{background:var(--ok);border-color:var(--ok);filter:brightness(1.06)}
 .btn-ghost{background:transparent;border-color:transparent;color:var(--ink-2)}
 .btn-ghost:hover{background:var(--surface-2);border-color:var(--line)}
 
@@ -413,6 +415,7 @@ body.review-on .quest-row .why{display:block}
         <ul class="tight">
           <li><strong>Рассуждай вслух.</strong> Оценивается ход мысли, а не только попадание в ответ.</li>
           <li><strong>Всё сохраняется</strong> в браузере само; кнопка «Выгрузить ответы» наверху соберёт отчёт для разбора.</li>
+          <li><strong>Часть заданий — устные.</strong> В них можно ничего не печатать: рассказываешь ответ вслух и сам жмёшь «Я ответил — зачесть», баллы добавятся. Нажал по ошибке — нажми ещё раз, зачёт снимется.</li>
           <li><strong>Не успеть всё — нормально, и это учтено при оценке.</strong> Ядро задания — блоки <b>02 SQL, 03 API, 04 Логи, 05 Очереди</b> (~25 минут): начни с них, остальное берём по остатку времени. Баллы за пропущенное не сгорают в минус — считается то, что сделано.</li>
         </ul>
       </div>
@@ -640,13 +643,14 @@ body.review-on .quest-row .why{display:block}
           <div class="rh">Гейтинг и грейд — шкала для интервьюера</div>
           <div class="ra"><b>Сейчас</b><span id="gradeNow">—</span></div>
           <ul>
-            <li><b>0–24</b> — не проходит. В практические блоки не зашёл или завяз в первом, варианты угадывал через раз.</li>
-            <li><b>25–43</b> — уровень junior. Отвечает там, где есть готовые варианты; сам написать SQL, походить по API и собрать подмену не может.</li>
-            <li><b>44–60</b> — уровень middle. Вопросы закрыты плюс часть практики доведена до результата.</li>
-            <li><b>61–74</b> — middle+, рабочий минимум для senior-вакансии. Практика почти вся, включая запрос с подзапросами и исследование API по журналу.</li>
-            <li><b>75–87</b> — senior по хардам. Дальше решают не баллы, а качество свободных ответов и тест-кейсов.</li>
+            <li><b>0–29</b> — не проходит. В практические блоки не зашёл или завяз в первом, варианты угадывал через раз.</li>
+            <li><b>30–52</b> — уровень junior. Отвечает там, где есть готовые варианты; сам написать SQL, походить по API и собрать подмену не может.</li>
+            <li><b>53–72</b> — уровень middle. Вопросы закрыты плюс часть практики доведена до результата.</li>
+            <li><b>73–88</b> — middle+, рабочий минимум для senior-вакансии. Практика почти вся, включая запрос с подзапросами и исследование API по журналу.</li>
+            <li><b>89–104</b> — senior по хардам. Дальше решает качество самих формулировок.</li>
           </ul>
-          <div><b>Одной суммы мало.</b> Из 87 баллов 43 набираются только руками (SQL, запросы к API, поиск в логах, подмена ответа), а 44 — это вопросы с вариантами, где можно угадать. Кандидат, который идеально отвечает на все варианты и не делает ничего руками, наберёт ровно 44 и упрётся в потолок. Поэтому на senior-вакансии смотри на вторую цифру в строке «Сейчас»: практики должно быть хотя бы 25 из 43.</div>
+          <div><b>Одной суммы мало</b>, поэтому в строке «Сейчас» три цифры. <b>Практика</b> (43 б) — то, что нельзя угадать: SQL, запросы к API, поиск в логах, подмена ответа. <b>Варианты</b> (44 б) — вопросы с готовыми ответами: кандидат, который отвечает на все и не делает ничего руками, упирается в потолок 44. <b>Устно</b> (17 б) — задания, где кандидат сам нажимает «Я ответил — зачесть»: тест-кейсы 8, разбор для разработчика 5, доказательство по API 4. Эти баллы никто не проверяет автоматически — ты слышал ответ и решаешь, засчитывать ли его при чтении отчёта; в отчёте у таких заданий стоит пометка «самозачёт».</div>
+          <div><b>Потолок кандидата, который не сделал руками ничего, — 61 из 104</b> (44 за варианты + 17 самозачёта), а это уже середина полосы «middle». Проверено кликом по всем верным вариантам и всем кнопкам «Я ответил». Поэтому на senior-вакансии смотри в первую очередь на практику: её должно быть хотя бы 25 из 43.</div>
           <div>Шкала прикидочная, её нужно откалибровать на 3–5 кандидатах: записывай балл и своё впечатление рядом, через несколько собеседований границы станут честными. Полезно один раз пройти стенд самому — получишь потолок за отведённое время и поймёшь, насколько ожидания реалистичны.</div>
           <ul>
             <li><b>Баллы не вся картина.</b> Свободные ответы (L6, A5) и тест-кейсы автоматом не считаются — смотри их глазами в отчёте.</li>
@@ -1159,7 +1163,7 @@ api: [
   model:'3 документа с одинаковым external_id ETRN-4471-01 — следствие трёх ретраев клиента без Idempotency-Key.',
   probe:['Каким эндпоинтом ты это увидел, если его нет в документации?']},
 
- {id:'a5', type:'free', pts:0, rows:3,
+ {id:'a5', type:'free', pts:4, self:true, rows:3,
   q:'Какой один запрос ты покажешь разработчику как доказательство корневой причины и почему именно его?',
   model:'POST /v1/invoices {"orderId":4471} → 422 с errors[0].field = company.vatRate. Один запрос показывает и симптом, и причину, и воспроизводится за секунду.',
   probe:['Чем этот аргумент сильнее скриншота из ЛК?']}
@@ -1184,7 +1188,7 @@ logs: [
   model:'88214 (партиция 2). Следом ушли 88215 и 88216 — по одному на каждый дубликат документа.',
   probe:['Почему в DLQ оказалось ровно 3 сообщения?']},
 
- {id:'l6', type:'free', pts:0, rows:3,
+ {id:'l6', type:'free', pts:5, self:true, rows:3,
   q:'Ты идёшь к разработчику. Три предложения: что сломалось, чем доказано, что просишь сделать.',
   model:'Ждём: конкретика (vat_rate NULL у компании 1), доказательство (лог + 422 от API + SQL по 6 заказам), просьба разделена на «починить данные» и «починить код», плюс вопрос про остальные 5 заказов.',
   probe:['Что делаем с уже застрявшими 6 заказами — руками или кодом?','Кому эскалируешь, если разработчик скажет «это данные, не мой баг»?','Если остаётся время: в выгрузке в 10:21 есть 502 от tariff-service и pool exhausted — это относится к нашему инциденту? (нет: другой trace_id, другое время, другая цепочка — классический ложный след)']}
@@ -1235,7 +1239,7 @@ proxy: [
 ],
 
 cases: [
- {id:'c1', type:'cases', pts:0,
+ {id:'c1', type:'cases', pts:8, self:true,
   q:'Напиши тест-кейсы, которыми проверишь этот фикс.',
   sub:'ЧТО ПОЧИНИЛИ. 1) Раньше: у компании не заполнена ставка НДС → сервис счетов падал, счёт не создавался, заказ навсегда оставался в статусе «Ожидает подписания». Теперь не падает. 2) Раньше: клиент нажал «Подписать» три раза → в системе появилось три документа. Теперь повторная подпись лишних документов не создаёт.\n\nСКОЛЬКО И КАК. Хватит четырёх кейсов, по строке на кейс. Слева — что подготовили и что делаем, справа — что должно произойти. Например: «Заказ отменён до подписи → пробуем подписать» → «Сервис отвечает отказом, документ не создаётся».\n\nЧТО МЫ СМОТРИМ. Проверишь ли ты что-то кроме сценария «всё прошло хорошо»: что будет на сломанных данных, что делать с заказами, которые уже застряли, и не сломалось ли то, что работало раньше.',
   model:'Ждём как минимум: 1) у компании пустая ставка — счёт не создаётся, но сервис не падает и понятно, почему; 2) ставку заполнили — счёт появился, статус заказа сменился; 3) подписали повторно — документ по-прежнему один; 4) регресс: обычная компания со ставкой 20 подписывается как раньше. Бонус — проверка, что застрявшие заказы после фикса разъехались.',
@@ -1373,6 +1377,15 @@ function practicePts(){
   return PRACTICE_IDS.reduce(function(a,id){ return a + (S.earned[id]||0); }, 0)
     + (S.earned.apiQuest||0) + (S.earned.mock||0);
 }
+
+/* Устные задания: баллы ставит себе сам кандидат кнопкой «Я ответил», интервьюер это видит. */
+function selfTasks(){
+  const out = [];
+  Object.keys(TASKS).forEach(function(b){ (TASKS[b]||[]).forEach(function(t){ if(t.self && inRun(t)) out.push(t); }); });
+  return out;
+}
+function oralMax(){ return selfTasks().reduce(function(a,t){ return a + (t.pts||0); }, 0); }
+function oralPts(){ return selfTasks().reduce(function(a,t){ return a + (S.earned[t.id]||0); }, 0); }
 function inRun(t){ return !t.opt; }
 function maxPts(block){ return (TASKS[block]||[]).reduce(function(a,t){return a + (inRun(t)?(t.pts||0):0);},0)
   + (block==='proxy'?6:0) + (block==='api'?QUEST_MAX:0); }
@@ -1392,17 +1405,19 @@ function updateScore(){
   $$('#rail a').forEach(function(a){
     const b = a.getAttribute('data-sec'); const dot = $('.dot', a); if(!dot) return;
     const list = (TASKS[b]||[]).filter(inRun);
-    const answered = list.filter(function(t){ return hasAnswer(t.id); }).length;
+    const answered = list.filter(function(t){ return hasAnswer(t.id) || (S.earned[t.id]||0) > 0; }).length;
     const total = list.length;
     dot.className = 'dot' + (total && answered>=total ? ' done' : (answered? ' part':''));
   });
   const gr = $('#gradeNow');
   if(gr){
-    const band = tot<25 ? 'не проходит' : tot<44 ? 'уровень junior' : tot<61 ? 'уровень middle'
-      : tot<75 ? 'middle+ — рабочий минимум для senior' : 'senior по хардам';
+    const band = tot<30 ? 'не проходит' : tot<53 ? 'уровень junior' : tot<73 ? 'уровень middle'
+      : tot<89 ? 'middle+ — рабочий минимум для senior' : 'senior по хардам';
+    const om = oralMax(), op = oralPts();
     gr.textContent = tot + ' из ' + max + ' — ' + band +
       '  ·  практика ' + practicePts() + ' из ' + PRACTICE_MAX +
-      ', вопросы с вариантами ' + (tot - practicePts()) + ' из ' + (max - PRACTICE_MAX);
+      ', варианты ' + (tot - practicePts() - op) + ' из ' + (max - PRACTICE_MAX - om) +
+      ', устно ' + op + ' из ' + om;
   }
   const grid = $('#scoreGrid');
   if(grid){
@@ -1437,13 +1452,21 @@ function reviewHtml(t){
     (t.probe? '<ul>'+t.probe.map(function(p){return '<li>'+esc(p)+'</li>';}).join('')+'</ul>':'')+
     '</div>';
 }
+function selfBtn(t){
+  if(!t.self) return '';
+  const done = (S.earned[t.id]||0) > 0;
+  return '<div class="task-foot">'+
+    '<button class="btn btn-sm '+(done?'btn-ok':'btn-primary')+'" data-self="'+t.id+'">'+
+      (done ? '\u2713 Зачтено, ' + t.pts + ' б' : 'Я ответил — зачесть ' + t.pts + ' б')+'</button>'+
+    '<span class="res-meta">' + (done ? 'нажми ещё раз, если зачёл по ошибке' : 'нажимай, когда рассказал ответ вслух') + '</span></div>';
+}
 function taskShell(t, i, inner){
   return '<div class="task'+(t.opt?' optional':'')+'" id="task-'+t.id+'" data-task="'+t.id+'">'+
     '<div class="task-h"><span class="tn">'+t.id.toUpperCase()+'</span>'+
       '<div class="task-q">'+esc(t.q)+ (t.sub? '<span class="q-sub">'+esc(t.sub)+'</span>':'') +'</div>'+
       (t.opt? '<span class="chip" style="margin-left:auto">если есть время</span>':'')+
       (t.pts? '<span class="chip pts"'+(t.opt?'':' style="margin-left:auto"')+'>'+t.pts+' б</span>':(t.opt?'':'<span class="chip" style="margin-left:auto">устно</span>'))+
-    '</div>'+ inner +
+    '</div>'+ inner + selfBtn(t) +
     '<div class="verdict idle" data-v="'+t.id+'" hidden></div>'+
     reviewHtml(t)+'</div>';
 }
@@ -1510,7 +1533,13 @@ function paintVerdict(t, ok){
   const v = $('[data-v="'+t.id+'"]');
   if(!v) return;
   v.hidden = false;
-  if(ok===null){ v.className='verdict idle'; v.innerHTML='<b>Ответ записан.</b> Оценивается голосом.'; return; }
+  if(ok===null){
+    v.className='verdict idle';
+    v.innerHTML = t.self
+      ? '<b>Ответ записан.</b> Баллы засчитываются кнопкой выше — нажми её, когда расскажешь ответ вслух.'
+      : '<b>Ответ записан.</b> Оценивается голосом.';
+    return;
+  }
   v.className = 'verdict ' + (ok?'ok':'err');
   v.innerHTML = ok ? '<b>Верно.</b> +'+t.pts+' б' : '<b>Не то.</b> Разберём голосом — ответ сохранён.';
   if(t.type==='choice' || t.type==='multi'){
@@ -1527,6 +1556,20 @@ function paintVerdict(t, ok){
     });
   }
 }
+function toggleSelf(id){
+  const t = TASKS_INDEX[id]; if(!t || !t.self) return;
+  S.earned[id] = (S.earned[id]||0) > 0 ? 0 : (t.pts||0);
+  save(); updateScore();
+  const host = $('#task-'+id+' [data-self="'+id+'"]');
+  if(host){
+    const done = (S.earned[id]||0) > 0;
+    host.className = 'btn btn-sm ' + (done?'btn-ok':'btn-primary');
+    host.textContent = done ? '\u2713 Зачтено, ' + t.pts + ' б' : 'Я ответил — зачесть ' + t.pts + ' б';
+    const note = host.parentNode.querySelector('.res-meta');
+    if(note) note.textContent = done ? 'нажми ещё раз, если зачёл по ошибке' : 'нажимай, когда рассказал ответ вслух';
+  }
+}
+
 function checkBlock(block){
   (TASKS[block]||[]).filter(inRun).forEach(function(t){
     if(t.type==='sql' || t.type==='cases' || t.type==='free'){ if(t.type==='free') paintVerdict(t, null); return; }
@@ -1623,7 +1666,8 @@ function buildReport(){
       else if(t.type==='cases') shown = '\n' + (S.cases||[]).filter(function(c){return (c[0]||c[1]);}).map(function(c,i){
           return (i+1)+'. ' + (c[0]||'') + ' → ' + (c[1]||''); }).join('\n');
       else shown = (a===undefined||a==='')?'—':('\n```\n'+a+'\n```');
-      L.push('- **' + t.id.toUpperCase() + '. ' + t.q + '**');
+      L.push('- **' + t.id.toUpperCase() + '. ' + t.q + '**' +
+        (t.self ? '  — самозачёт: ' + ((S.earned[t.id]||0) > 0 ? 'да, ' + t.pts + ' б' : 'нет') : ''));
       L.push('  ' + String(shown).replace(/\n/g,'\n  '));
     });
     L.push('');
@@ -1962,12 +2006,13 @@ if(S.mock) applyMock();
 paintTimer();
 
 document.addEventListener('click', function(e){
-  const el = e.target.closest ? e.target.closest('[data-check],[data-sql],[data-svc],[data-lvl],[data-delcase],[data-j]') : null;
+  const el = e.target.closest ? e.target.closest('[data-check],[data-sql],[data-svc],[data-lvl],[data-delcase],[data-j],[data-self]') : null;
   if(!el) return;
   if(el.hasAttribute('data-check')){
     const b = el.getAttribute('data-check');
     checkBlock(b);
   }
+  else if(el.hasAttribute('data-self')) toggleSelf(el.getAttribute('data-self'));
   else if(el.hasAttribute('data-sql')) runSql(el.getAttribute('data-sql'));
   else if(el.hasAttribute('data-svc')){
     const s = el.getAttribute('data-svc'); logF.svc = (logF.svc===s?null:s); renderLogChips(); renderLogs();
