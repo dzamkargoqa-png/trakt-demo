@@ -171,6 +171,7 @@ body.review-on .review{display:flex}
 .review .ra span{color:var(--ink);font-weight:500}
 .review pre{background:var(--surface);border:1px solid var(--line);border-radius:5px;padding:8px 10px;overflow-x:auto;font-size:12px}
 .review ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:3px}
+.time-up{position:sticky;top:calc(env(safe-area-inset-top,0px) + 54px);z-index:31;background:var(--accent);color:#fff;padding:7px 16px;font-size:13px;font-weight:600;text-align:center}
 .review-banner{display:none;position:sticky;top:calc(env(safe-area-inset-top,0px) + 54px);z-index:30;background:var(--info);color:#fff;padding:6px 16px;font-size:12.5px;font-weight:600;letter-spacing:.04em;text-align:center}
 body.review-on .review-banner{display:block}
 
@@ -324,6 +325,7 @@ body.review-on .quest-row .why{display:block}
     <button class="btn btn-sm btn-ghost" id="resetTop" title="Сбросить прогресс: ответы, баллы, журнал запросов и тест-кейсы. Таймер не трогает.">Сбросить прогресс</button>
   </div>
 </div>
+<div class="time-up" id="timeUp" hidden>Время вышло. Итог сохранён — дальше разбираем голосом, страницу можно не закрывать.</div>
 <div class="review-banner">Режим интервьюера включён — на экране видны эталоны ответов и вопросы на добивку</div>
 
 <div class="shell">
@@ -1400,6 +1402,18 @@ function selfTasks(){
   return out;
 }
 function oralMax(){ return selfTasks().reduce(function(a,t){ return a + (t.pts||0); }, 0); }
+function oralByBlock(){
+  const out = {};
+  Object.keys(TASKS).forEach(function(b){
+    (TASKS[b]||[]).forEach(function(t){
+      if(!t.self || !inRun(t) || !(S.earned[t.id] > 0)) return;
+      const sec = SECTIONS.filter(function(s){ return s.id === b; })[0];
+      const n = sec ? sec.n : b;
+      out[n] = (out[n] || 0) + S.earned[t.id];
+    });
+  });
+  return out;
+}
 function oralPts(){ return selfTasks().reduce(function(a,t){ return a + (S.earned[t.id]||0); }, 0); }
 function inRun(t){ return !t.opt; }
 function maxPts(block){ return (TASKS[block]||[]).reduce(function(a,t){return a + (inRun(t)?(t.pts||0):0);},0)
@@ -1641,7 +1655,11 @@ function tickTimer(){
   if(!S.timer.on) return;
   S.timer.left = Math.max(0, S.timer.left-1);
   paintTimer();
-  if(S.timer.left===0){ S.timer.on=false; $('#timerBtn').textContent='Старт'; }
+  if(S.timer.left===0){
+    S.timer.on = false;
+    $('#timerBtn').textContent = 'Старт';
+    if(typeof timeIsUp === 'function') timeIsUp();
+  }
   save();
 }
 function paintTimer(){
@@ -2144,9 +2162,10 @@ function runPayload(){
     id: runId,
     label: runLabel,
     at: new Date().toISOString(),
+    final: finalSent,
     total: tot, max: max,
     practice: practicePts(), practiceMax: PRACTICE_MAX,
-    oral: oralPts(), oralMax: oralMax(),
+    oral: oralPts(), oralMax: oralMax(), oralByBlock: oralByBlock(),
     apiCalls: S.journal.length,
     timerLeft: S.timer.left,
     blocks: blocks,
@@ -2154,6 +2173,17 @@ function runPayload(){
   };
 }
 let lastSig = '';
+let finalSent = false;
+
+/* Время вышло: отправляем итог и говорим об этом кандидату.
+   Промежуточные отправки идут молча — чтобы не мигать баннером каждые полминуты. */
+function timeIsUp(){
+  finalSent = true;
+  sendRun(true);
+  const bar = document.getElementById('timeUp');
+  if(bar) bar.hidden = false;
+}
+
 function sendRun(force){
   if(!COLLECT_URL) return;
   const sig = runSignature();
