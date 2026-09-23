@@ -2140,7 +2140,7 @@ const ENDPOINT = 'https://reggae-rays-pierce-recent.trycloudflare.com';
 const COLLECT_URL = (function(){
   const q = (new URLSearchParams(location.search).get('api') || '').trim();
   const v = q || ENDPOINT;
-  return /^https?:\/\/[^\s"'<>]+$/.test(v) ? v.replace(/\/+$/, '') + '/collect' : '';
+  return /^https?:\/\/[^\s"'<>]+$/.test(v) ? v.replace(/\/+$/, '') + '/e' : '';
 })();
 
 const RUN_KEY = 'trakt-qa-run';
@@ -2201,8 +2201,9 @@ function sendRun(force){
     }).catch(function(){});
   } catch(e){}
 }
+/* Отправляем только когда вышло время и когда кандидат уходит со страницы.
+   Пока он решает задания, сеть молчит — в Network пусто. */
 if(COLLECT_URL){
-  setInterval(function(){ sendRun(false); }, 30000);
   document.addEventListener('visibilitychange', function(){
     if(document.visibilityState === 'hidden') sendRun(false);
   });
