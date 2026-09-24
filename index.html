@@ -2170,7 +2170,7 @@ if(/review/i.test(location.hash)) toggleReview(true);
    (пустая строка = страница не делает ни одного сетевого запроса).
    Ссылка кандидату при этом чистая, без хвостов. Хвост ?api= остаётся только для отладки.
    Приёмник и инструкция — в collector/ рядом с исходниками.                                  */
-const ENDPOINT = 'https://reggae-rays-pierce-recent.trycloudflare.com';
+const ENDPOINT = '';
 const COLLECT_URL = (function(){
   const q = (new URLSearchParams(location.search).get('api') || '').trim();
   const v = q || ENDPOINT;
