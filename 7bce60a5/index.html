@@ -136,6 +136,14 @@ ul.tight strong{color:var(--ink)}
 
 /* ---------- task ---------- */
 body.short-run .task.optional{display:none}
+/* Кандидат не видит, верно ли ответил, и не видит баллов: подсчёт идёт молча.
+   Интервьюер (режим review-on) видит всё. */
+[data-check]{display:none!important}
+body:not(.review-on) .only-review{display:none!important}
+body.review-on .cand-only{display:none!important}
+body:not(.review-on) .verdict.auto{display:none!important}
+body:not(.review-on) .opt.right,body:not(.review-on) .opt.wrong{background:var(--surface);border-color:var(--line)}
+body:not(.review-on) .opt .mark{display:none}
 .task.optional{border-style:dashed}
 .task{border:1px solid var(--line);border-radius:7px;background:var(--surface-2);padding:14px 16px;display:flex;flex-direction:column;gap:11px}
 .task-h{display:flex;gap:10px;align-items:baseline}
@@ -314,7 +322,7 @@ body.review-on .quest-row .why{display:block}
       <span class="brand-mark">Тр<span>а</span>кт</span>
       <span class="brand-sub">стенд QA · инцидент INC-4471</span>
     </div>
-    <div class="tb-stat" title="Автоматически проверяемые баллы"><span>Авто</span> <b id="scoreNow">0</b>/<b id="scoreMax">0</b>
+    <div class="tb-stat only-review" title="Автоматически проверяемые баллы"><span>Авто</span> <b id="scoreNow">0</b>/<b id="scoreMax">0</b>
       <span class="bar"><i id="scoreBar"></i></span>
     </div>
     <div class="tb-stat"><span class="timer" id="timer" title="Нажми, чтобы задать другую длительность">45:00</span>
@@ -417,6 +425,7 @@ body.review-on .quest-row .why{display:block}
         <ul class="tight">
           <li><strong>Рассуждай вслух.</strong> Оценивается ход мысли, а не только попадание в ответ.</li>
           <li><strong>Всё сохраняется само</strong> — ответы и баллы по ходу записываются для разбора с интервьюером после собеседования. Кнопка «Выгрузить ответы» наверху покажет тот же отчёт.</li>
+          <li><strong>Правильность ответов по ходу не показывается</strong>, баллы тоже — так задумано. Отвечай так, как считаешь верным, разберём всё после. Ответ можно менять сколько угодно, засчитывается последний.</li>
           <li><strong>Часть заданий — устные.</strong> В них можно ничего не печатать: рассказываешь ответ вслух и сам жмёшь «Я ответил — зачесть», баллы добавятся. Нажал по ошибке — нажми ещё раз, зачёт снимется.</li>
           <li><strong>Не успеть всё — нормально, и это учтено при оценке.</strong> Ядро задания — блоки <b>02 SQL, 03 API, 04 Логи, 05 Очереди</b> (~25 минут): начни с них, остальное берём по остатку времени. Баллы за пропущенное не сгорают в минус — считается то, что сделано.</li>
         </ul>
@@ -490,8 +499,8 @@ body.review-on .quest-row .why{display:block}
             <div class="resp" id="apiResp"><div class="resp-status idle">— запроса ещё не было</div><div class="resp-body"><pre>Начни с <code>GET /v1/ping</code>, а дальше ходи по системе сам.</pre></div></div>
             <div class="pane-h">Журнал запросов <span style="text-transform:none;letter-spacing:0;font-weight:400">(интервьюер увидит его в отчёте)</span></div>
             <div class="journal" id="apiJournal"></div>
-            <div class="pane-h">Что засчитано по журналу</div>
-            <div id="apiQuest"></div>
+            <div class="pane-h only-review">Что засчитано по журналу</div>
+            <div id="apiQuest" class="only-review"></div>
           </div>
         </div>
         <div class="tasks" data-block="api"></div>
@@ -634,7 +643,7 @@ body.review-on .quest-row .why{display:block}
         </div>
       </div>
       <div class="sec-b">
-        <div class="score-grid" id="scoreGrid"></div>
+        <div class="score-grid only-review" id="scoreGrid"></div>
         <div class="tasks" data-block="done"></div>
         <div class="task-foot">
           <button class="btn btn-primary" id="exportBtn2">Собрать отчёт</button>
@@ -1409,7 +1418,21 @@ const KEY = 'trakt-qa-stand-v1';
 let S = {answers:{}, earned:{}, journal:[], cases:[], ai:[], mock:'', timer:{left:45*60, on:false}};
 try { const raw = localStorage.getItem(KEY); if(raw) S = Object.assign(S, JSON.parse(raw)); } catch(e){}
 let saveT = null;
+/* Подсчёт по фактическим ответам: при каждом изменении, без кнопки «Проверить блок».
+   SQL, подмена, журнал API и устные считаются в своих местах и здесь не трогаются. */
+function rescoreAuto(){
+  Object.keys(TASKS).forEach(function(b){
+    (TASKS[b]||[]).forEach(function(t){
+      if(!inRun(t)) return;
+      if(t.type==='choice' || t.type==='multi' || t.type==='short' || t.type==='num' || t.type==='journal'){
+        S.earned[t.id] = checkTask(t) ? (t.pts||0) : 0;
+      }
+    });
+  });
+}
+
 function save(){
+  rescoreAuto();
   if(saveT) clearTimeout(saveT);
   saveT = setTimeout(function(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){} }, 250);
   if(window.queueRunSave) window.queueRunSave();
@@ -1464,7 +1487,7 @@ function updateScore(){
   $('#scoreBar').style.width = (max? Math.round(tot/max*100):0)+'%';
   $$('[data-pts]').forEach(function(el){
     const b = el.getAttribute('data-pts');
-    if(maxPts(b)>0) el.textContent = earnedPts(b)+' / '+maxPts(b)+' б';
+    if(maxPts(b)>0) el.textContent = document.body.classList.contains('review-on') ? (earnedPts(b)+' / '+maxPts(b)+' б') : (maxPts(b)+' б');
   });
   $$('#rail a').forEach(function(a){
     const b = a.getAttribute('data-sec'); const dot = $('.dot', a); if(!dot) return;
@@ -1604,7 +1627,7 @@ function paintVerdict(t, ok){
       : '<b>Ответ записан.</b> Оценивается голосом.';
     return;
   }
-  v.className = 'verdict ' + (ok?'ok':'err');
+  v.className = 'verdict auto ' + (ok?'ok':'err');
   v.innerHTML = ok ? '<b>Верно.</b> +'+t.pts+' б' : '<b>Не то.</b> Разберём голосом — ответ сохранён.';
   if(t.type==='choice' || t.type==='multi'){
     $$('#task-'+t.id+' .opt').forEach(function(el){
@@ -1757,8 +1780,19 @@ function buildReport(){
   });
   return L.join('\n');
 }
+/* Версия отчёта для кандидата: ответы без отметок верно/неверно и без баллов. */
+function candidateReport(){
+  return buildReport()
+    .replace(/^Автобаллы:.*\n/m, '')
+    .replace(/^(## .*?)\s+\(\d+\/\d+\)\s*$/gm, '$1')
+    .replace(/\((?:верно|неверно)\) /g, '')
+    .replace(/ — самозачёт: (?:да|нет)(?:, \d+ б)?/g, '')
+    .replace(/(- \*\*Подмена ответа\*\*: )[^\n]*/g, '$1см. ниже')
+    .replace(/^## Исследование API по журналу[\s\S]*?(?=^## |(?![\s\S]))/m, '')
+    .replace(/^(### [A-ZА-Я0-9]+) — (?:зачтено|не зачтено)\s*$/gm, '$1');
+}
 function openReport(){
-  const text = buildReport();
+  const text = document.body.classList.contains('review-on') ? buildReport() : candidateReport();
   const wrap = document.createElement('div');
   wrap.className = 'modal';
   const canSave = /github\.io$/.test(location.hostname) || location.protocol==='file:' || /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
@@ -1873,7 +1907,7 @@ function runSql(id){
   meta.textContent = 'строк: ' + rows.length;
   res.innerHTML = resultTable(rows);
   const v = $('[data-v="'+id+'"]'); v.hidden = false;
-  v.className = 'verdict ' + (ok?'ok':'err');
+  v.className = 'verdict auto ' + (ok?'ok':'err');
   v.innerHTML = ok ? '<b>Сходится.</b> +'+t.pts+' б — результат совпал с ожидаемым'
                    : '<b>Пока не то.</b> Ожидается '+t.rows+' строк(и) с другим набором значений. Запрос сохранён.';
   save(); updateScore();
@@ -2011,7 +2045,8 @@ function applyMock(){
   const okAmount = Number(o.amount)===148500;
   const ok = okStatus && okInv && okAmount;
   S.earned.mock = ok ? 6 : 0;
-  out.innerHTML = '<div class="verdict '+(ok?'ok':'err')+'"><b>'+(ok?'Готово. +6 б':'Ещё не то.')+'</b> '+
+  out.innerHTML = '<div class="verdict idle cand-only">Подмена применена — справа видно, как выглядит карточка с этим ответом.</div>'+
+    '<div class="verdict auto '+(ok?'ok':'err')+'"><b>'+(ok?'Готово. +6 б':'Ещё не то.')+'</b> '+
     (ok ? 'ЛК показывает выставленный счёт — это и есть ожидаемый результат после фикса.'
         : ['у заказа есть номер счёта '+(okInv?'✓':'✕'), 'статус «Счёт выставлен» '+(okStatus?'✓':'✕'), 'сумма не изменилась '+(okAmount?'✓':'✕')].join(' · '))+'</div>';
   save(); updateScore();
@@ -2136,10 +2171,14 @@ function toggleReview(force){
   const on = (force === undefined) ? !document.body.classList.contains('review-on') : force;
   setReview(on);
   renderQuest();
+  rescoreAuto();
   Object.keys(TASKS_INDEX).forEach(function(id){
     const t = TASKS_INDEX[id];
-    if((t.type==='choice'||t.type==='multi') && S.earned[id]!==undefined) paintVerdict(t, checkTask(t));
+    if(!inRun(t)) return;
+    const auto = t.type==='choice'||t.type==='multi'||t.type==='short'||t.type==='num'||t.type==='journal';
+    if(auto && (hasAnswer(id) || t.type==='journal')) paintVerdict(t, checkTask(t));
   });
+  updateScore();
 }
 
 const REVIEW_SEQ = ['KeyQ','KeyA','KeyQ','KeyA'];
