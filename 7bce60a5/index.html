@@ -2196,6 +2196,35 @@ const runLabel = (new URLSearchParams(location.search).get('c') || '').slice(0, 
 function runSignature(){
   return JSON.stringify([S.answers, S.earned, S.cases, S.mock, S.journal.length]);
 }
+/* Задания со всеми вариантами, верными ответами и выбором кандидата —
+   чтобы PDF-отчёт показывал вопрос целиком, не открывая стенд. */
+function taskSnapshot(){
+  const out = [];
+  SECTIONS.forEach(function(sec){
+    (TASKS[sec.id]||[]).filter(inRun).forEach(function(t){
+      const a = S.answers[t.id];
+      const x = {id:t.id, n:sec.n, block:sec.t, q:t.q, type:t.type, pts:t.pts||0, earned:S.earned[t.id]||0,
+                 ref: rightAnswer(t) || ''};
+      if(t.type==='choice' || t.type==='multi'){
+        x.opts = t.opts;
+        x.right = t.type==='choice' ? [t.ans] : t.ans.slice();
+        x.picked = t.type==='choice' ? (typeof a==='number' ? [a] : []) : (Array.isArray(a) ? a.slice() : []);
+      } else if(t.type==='cases'){
+        x.cases = (S.cases||[]).filter(function(c){ return (c[0]||'').trim() || (c[1]||'').trim(); });
+      } else if(t.type==='journal'){
+        x.ok = !!t.need(S.journal);
+      } else {
+        x.answer = (a===undefined || a===null) ? '' : String(a);
+        if(t.type==='short' || t.type==='num') x.ok = !!checkTask(t);
+        if(t.type==='sql') x.ok = (S.earned[t.id]||0) > 0;
+      }
+      if(t.self) x.self = true;
+      out.push(x);
+    });
+  });
+  return out;
+}
+
 function runPayload(){
   let tot = 0, max = 0;
   Object.keys(TASKS).forEach(function(b){ tot += earnedPts(b); max += maxPts(b); });
@@ -2212,6 +2241,7 @@ function runPayload(){
     apiCalls: S.journal.length,
     timerLeft: S.timer.left,
     blocks: blocks,
+    tasks: taskSnapshot(),
     report: buildReport()
   };
 }
