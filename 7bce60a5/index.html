@@ -550,7 +550,7 @@ body.review-on .quest-row .why{display:block}
         <span class="idx">06</span>
         <div>
           <h2>Подмена трафика</h2>
-          <p class="sub">Разработчик спрашивает: «а как экран должен выглядеть после фикса?» Собери это подменой ответа, не дожидаясь бэкенда.</p>
+          <p class="sub">Разработчик спрашивает: «а как экран должен выглядеть после фикса?» Собери это подменой ответа, не дожидаясь бэкенда. После фикса у заказа 4471 появится счёт, и в ЛК справа должно стать: статус «Счёт выставлен», номер счёта вместо «не выставлен», кнопка «Оплатить» активна. Как выглядит ответ по заказу, у которого счёт уже есть, можно посмотреть в API из блока 03 — например, <code>GET /v1/orders/4462</code>.</p>
         </div>
         <div class="sec-meta"><span class="chip time" data-short="4">4 мин</span><span class="chip pts" data-pts="proxy">0 б</span></div>
       </div>
@@ -2004,14 +2004,16 @@ function applyMock(){
     return;
   }
   renderLK(o);
-  const okStatus = o.status==='invoiced';
-  const okInv = o.invoiceId!==null && o.invoiceId!==undefined && o.invoiceId!=='';
+  // засчитываем смысл: у заказа есть счёт и статус «счёт выставлен» — кодом или подписью
+  const title = String(o.statusTitle||'').toLowerCase().replace(/ё/g,'е');
+  const okStatus = o.status==='invoiced' || /сч[её]т выставлен/.test(title);
+  const okInv = o.invoiceId!==null && o.invoiceId!==undefined && o.invoiceId!=='' && o.invoiceId!==0;
   const okAmount = Number(o.amount)===148500;
   const ok = okStatus && okInv && okAmount;
   S.earned.mock = ok ? 6 : 0;
   out.innerHTML = '<div class="verdict '+(ok?'ok':'err')+'"><b>'+(ok?'Готово. +6 б':'Ещё не то.')+'</b> '+
     (ok ? 'ЛК показывает выставленный счёт — это и есть ожидаемый результат после фикса.'
-        : ['status = invoiced '+(okStatus?'✓':'✕'), 'invoiceId не null '+(okInv?'✓':'✕'), 'amount = 148500 '+(okAmount?'✓':'✕')].join(' · '))+'</div>';
+        : ['у заказа есть номер счёта '+(okInv?'✓':'✕'), 'статус «Счёт выставлен» '+(okStatus?'✓':'✕'), 'сумма не изменилась '+(okAmount?'✓':'✕')].join(' · '))+'</div>';
   save(); updateScore();
 }
 
@@ -2033,8 +2035,8 @@ function renderCases(){
 const MOCK_REF = '{\n  "id": 4471,\n  "companyId": 1,\n  "status": "invoiced",\n  "statusTitle": "Счёт выставлен",\n  "amount": 148500,\n  "currency": "RUB",\n  "invoiceId": 7999,\n  "documentsCount": 3\n}';
 function renderStaticReviews(){
   $('#mockReview').innerHTML = '<div class="review"><div class="rh">Эталон и добивка</div>'+
-    '<div class="ra"><b>Правильный ответ</b><span>status = invoiced, непустой invoiceId, amount = 148500; statusTitle — «Счёт выставлен»</span></div>'+
-    '<div>Засчитывается любой JSON с этими полями — проверяется результат в ЛК, а не текст подмены.</div>'+
+    '<div class="ra"><b>Правильный ответ</b><span>непустой invoiceId, status = invoiced (или statusTitle «Счёт выставлен»), сумма 148500 не тронута</span></div>'+
+    '<div>Образец правильной формы — любой заказ, у которого счёт уже есть: <code>GET /v1/orders/4462</code> отдаёт status invoiced, statusTitle «Счёт выставлен», invoiceId 7062. Кто догадался туда сходить, собирает подмену за минуту. Частая ошибка — поменять только подпись статуса: карточка выглядит «подписанной», но счёта по-прежнему нет, и кнопка оплаты заблокирована.</div>'+
     '<pre>'+esc(MOCK_REF)+'</pre>'+
     '<ul><li>Чем такая подмена помогает разработчику больше, чем словами описанный ожидаемый результат?</li>'+
     '<li>Что эта проверка НЕ доказывает? (что бэкенд отдаст ровно такой ответ)</li></ul></div>';
