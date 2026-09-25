@@ -2348,6 +2348,8 @@ function sendRun(force){
    при уходе со страницы и когда вышло время. Без этого итог терялся, если собес
    заканчивался раньше таймера. */
 if(COLLECT_URL){
+  // «кандидат на месте»: одна отправка сразу при открытии — связь видна с первых секунд
+  setTimeout(function(){ sendRun(true); }, 1500);
   let quietT = null;
   window.queueRunSave = function(){
     if(quietT) clearTimeout(quietT);
