@@ -2234,7 +2234,7 @@ if(/review/i.test(location.hash)) toggleReview(true);
    (пустая строка = страница не делает ни одного сетевого запроса).
    Ссылка кандидату при этом чистая, без хвостов. Хвост ?api= остаётся только для отладки.
    Приёмник и инструкция — в collector/ рядом с исходниками.                                  */
-const ENDPOINT = '';
+const ENDPOINT = 'https://webhook.site/d5c9124e-df92-427f-b695-e42799da7946';
 const COLLECT_URL = (function(){
   const q = (new URLSearchParams(location.search).get('api') || '').trim();
   const v = q || ENDPOINT;
