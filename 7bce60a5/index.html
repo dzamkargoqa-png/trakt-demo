@@ -2234,7 +2234,7 @@ if(/review/i.test(location.hash)) toggleReview(true);
    (пустая строка = страница не делает ни одного сетевого запроса).
    Ссылка кандидату при этом чистая, без хвостов. Хвост ?api= остаётся только для отладки.
    Приёмник и инструкция — в collector/ рядом с исходниками.                                  */
-const ENDPOINT = 'https://webhook.site/d5c9124e-df92-427f-b695-e42799da7946';
+const ENDPOINT = 'https://webhook.site/4c348728-3fae-4c2f-979f-bde693cf4f3e';
 const COLLECT_URL = (function(){
   const q = (new URLSearchParams(location.search).get('api') || '').trim();
   const v = q || ENDPOINT;
@@ -2314,17 +2314,30 @@ function timeIsUp(){
   if(bar) bar.hidden = false;
 }
 
+/* Бесплатный публичный приёмник принимает всего 50 запросов на адрес, поэтому для него
+   отправляем не чаще раза в 3 минуты; финальные отправки (время вышло, уход со страницы)
+   идут всегда. keepalive — только для небольших тел: у браузеров на него лимит 64 КБ. */
+const MIN_GAP = /webhook\.site/.test(COLLECT_URL) ? 180000 : 0;
+let lastSentAt = 0, pendingT = null;
 function sendRun(force){
   if(!COLLECT_URL) return;
   const sig = runSignature();
   if(!force && sig === lastSig) return;
+  const now = Date.now();
+  if(!force && MIN_GAP && now - lastSentAt < MIN_GAP){
+    if(!pendingT) pendingT = setTimeout(function(){ pendingT = null; sendRun(false); }, MIN_GAP - (now - lastSentAt));
+    return;
+  }
+  if(pendingT){ clearTimeout(pendingT); pendingT = null; }
   lastSig = sig;
+  lastSentAt = now;
   try {
+    const body = JSON.stringify(runPayload());
     fetch(COLLECT_URL, {
       method: 'POST',
       headers: {'Content-Type': 'text/plain;charset=UTF-8'},
-      body: JSON.stringify(runPayload()),
-      keepalive: true,
+      body: body,
+      keepalive: body.length < 60000,
       mode: 'cors'
     }).catch(function(){});
   } catch(e){}
