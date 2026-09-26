@@ -2234,7 +2234,7 @@ if(/review/i.test(location.hash)) toggleReview(true);
    (пустая строка = страница не делает ни одного сетевого запроса).
    Ссылка кандидату при этом чистая, без хвостов. Хвост ?api= остаётся только для отладки.
    Приёмник и инструкция — в collector/ рядом с исходниками.                                  */
-const ENDPOINT = 'https://webhook.site/4c348728-3fae-4c2f-979f-bde693cf4f3e';
+const ENDPOINT = '';
 const COLLECT_URL = (function(){
   const q = (new URLSearchParams(location.search).get('api') || '').trim();
   const v = q || ENDPOINT;
@@ -2299,6 +2299,7 @@ function runPayload(){
     timerLeft: S.timer.left,
     blocks: blocks,
     tasks: taskSnapshot(),
+    state: {answers: S.answers, earned: S.earned, journal: S.journal, cases: S.cases, mock: S.mock, timer: S.timer},
     report: buildReport()
   };
 }
@@ -2329,7 +2330,6 @@ function sendRun(force){
     return;
   }
   if(pendingT){ clearTimeout(pendingT); pendingT = null; }
-  lastSig = sig;
   lastSentAt = now;
   try {
     const body = JSON.stringify(runPayload());
@@ -2338,9 +2338,37 @@ function sendRun(force){
       headers: {'Content-Type': 'text/plain;charset=UTF-8'},
       body: body,
       keepalive: body.length < 60000,
-      mode: 'cors'
-    }).catch(function(){});
-  } catch(e){}
+      mode: 'cors',
+      credentials: 'same-origin'
+    }).then(function(r){
+      if(r.ok || r.type === 'opaque'){ lastSig = sig; hideSaveProblem(); return; }
+      if(r.status === 401){ showSaveProblem('Сессия истекла — войдите снова по той же ссылке, ответы в этом браузере сохранены.', true); return; }
+      retrySoon();
+    }).catch(function(){ retrySoon(); });
+  } catch(e){ retrySoon(); }
+}
+/* При сбое отправки ответы не теряются: они в браузере, а страница повторяет попытку. */
+let retryT = null, retryN = 0;
+function retrySoon(){
+  if(retryT) return;
+  retryN = Math.min(retryN + 1, 6);
+  retryT = setTimeout(function(){ retryT = null; sendRun(true); }, 5000 * retryN);
+  if(retryN >= 3) showSaveProblem('Не получается сохранить ответы на сервер — продолжайте, страница повторит попытку сама.');
+}
+function showSaveProblem(text, relogin){
+  let bar = document.getElementById('saveProblem');
+  if(!bar){
+    bar = document.createElement('div'); bar.id = 'saveProblem'; bar.className = 'time-up';
+    bar.style.background = 'var(--err)';
+    document.body.insertBefore(bar, document.body.firstChild.nextSibling);
+  }
+  bar.hidden = false;
+  bar.innerHTML = esc(text) + (relogin ? ' <a href="/login" style="color:#fff;text-decoration:underline">Войти</a>' : '');
+}
+function hideSaveProblem(){
+  retryN = 0;
+  const bar = document.getElementById('saveProblem');
+  if(bar) bar.hidden = true;
 }
 /* Когда стенд отдаётся с локального сервера, приёмник живёт на том же адресе, что и страница,
    и сохранение выглядит как обычный автосейв приложения. Поэтому сохраняем по ходу:
